@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Natura</title>
+<style>
+  :root{
+    --pine:#16302a; --pine-light:#20463a; --pine-lighter:#2b5c4b;
+    --moss:#4c7f4a; --moss-dark:#365c34; --moss-edge:#5f9a58;
+    --water:#2f6f8f; --water-deep:#204d63; --water-light:#6ab3cf;
+    --sand:#d9c589; --bark:#5c4433; --bark-dark:#3e2d22;
+    --cream:#f3ecd6; --sun:#e8a33d; --sun-dark:#c07f21; --berry:#b6473f;
+    --ink:#1a2a1c; --paper:#efe6c8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:var(--ink);
+    font-family:'Courier New',Consolas,monospace;color:var(--cream);}
+  #app{position:relative;width:100%;height:100%;}
+  #game{display:block;background:#264a3d;image-rendering:pixelated;image-rendering:crisp-edges;
+    width:100%;height:100%;cursor:crosshair;}
+
+  #topbar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
+    align-items:center;padding:10px 14px;background:linear-gradient(180deg,rgba(22,48,42,.92),rgba(22,48,42,0));
+    pointer-events:none;}
+  #topbar .title{font-weight:bold;letter-spacing:1px;font-size:15px;text-shadow:2px 2px 0 var(--ink);
+    pointer-events:auto;}
+  #topbar .actions{display:flex;gap:8px;pointer-events:auto;}
+
+  button{font-family:inherit;cursor:pointer;border:2px solid var(--ink);background:var(--sun);
+    color:var(--ink);padding:7px 12px;font-size:12px;font-weight:bold;letter-spacing:.5px;
+    box-shadow:2px 2px 0 var(--ink);border-radius:2px;}
+  button:hover{background:var(--sun-dark);}
+  button:active{transform:translate(2px,2px);box-shadow:none;}
+  button.ghost{background:var(--pine-light);color:var(--cream);}
+  button.ghost:hover{background:var(--pine-lighter);}
+  button.small{padding:4px 8px;font-size:11px;box-shadow:1px 1px 0 var(--ink);}
+  button.danger{background:var(--berry);color:var(--cream);}
+
+  #hint{position:absolute;bottom:10px;left:14px;font-size:11px;background:rgba(22,48,42,.75);
+    padding:6px 10px;border:1px solid var(--moss-edge);border-radius:2px;pointer-events:none;}
+
+  #toastArea{position:absolute;top:56px;right:14px;display:flex;flex-direction:column;gap:6px;z-index:50;}
+  .toast{background:var(--pine);border:2px solid var(--sun);padding:8px 12px;font-size:12px;
+    border-radius:2px;max-width:260px;animation:fadein .2s ease-out;}
+  @keyframes fadein{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+
+  .bugmsg{position:absolute;font-size:11px;background:var(--berry);color:var(--cream);
+    padding:2px 6px;border-radius:8px;border:1px solid var(--ink);pointer-events:none;
+    transform:translate(-50%,-100%);white-space:nowrap;}
+
+  .modal{position:absolute;inset:0;background:rgba(10,16,12,.68);display:flex;align-items:center;
+    justify-content:center;z-index:100;}
+  .modal.hidden{display:none;}
+  .card{position:relative;background:var(--paper);color:var(--ink);border:3px solid var(--ink);
+    border-radius:3px;padding:20px 22px;max-width:420px;width:90%;max-height:84vh;overflow-y:auto;
+    box-shadow:6px 6px 0 rgba(0,0,0,.4);}
+  .card.wide{max-width:640px;}
+  .card h2{margin:0 0 12px;font-size:16px;letter-spacing:.5px;border-bottom:2px solid var(--bark);
+    padding-bottom:8px;}
+  .closeBtn{position:absolute;top:8px;right:8px;background:transparent;border:none;box-shadow:none;
+    font-size:20px;color:var(--ink);line-height:1;padding:4px 8px;}
+  .closeBtn:hover{color:var(--berry);}
+
+  #infoPhoto{width:100%;aspect-ratio:4/3;background:#00000022;border:2px solid var(--bark);
+    margin-bottom:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  #infoPhoto img{width:100%;height:100%;object-fit:cover;}
+  #infoLatin{font-style:italic;color:var(--moss-dark);margin-bottom:8px;font-size:12px;}
+  #infoDesc{font-size:13px;line-height:1.5;white-space:pre-wrap;}
+  #infoParasite{margin-top:10px;font-size:12px;background:#00000010;padding:8px;border-left:3px solid var(--berry);}
+
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:11px;font-weight:bold;margin-bottom:4px;text-transform:uppercase;
+    letter-spacing:.5px;color:var(--bark-dark);}
+  .field input[type=text], .field textarea, .field select{width:100%;padding:7px;border:2px solid var(--bark);
+    background:#fffdf5;font-family:inherit;font-size:13px;border-radius:2px;}
+  .field textarea{resize:vertical;min-height:60px;}
+  .radiorow{display:flex;gap:14px;}
+  .radiorow label{display:flex;align-items:center;gap:5px;font-size:12px;text-transform:none;font-weight:normal;}
+  .tagbox{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;background:#00000008;padding:8px;
+    border:1px solid #00000022;border-radius:2px;}
+  .tagbox label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:normal;text-transform:none;}
+  .rowsplit{display:flex;gap:12px;}
+  .rowsplit>div{flex:1;}
+  .hintText{font-size:10.5px;color:#00000088;margin-top:3px;}
+
+  #iconEditor{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;}
+  #iconCanvas{border:2px solid var(--bark);background:
+    repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 50% / 12px 12px;image-rendering:pixelated;cursor:crosshair;}
+  #palette{display:flex;flex-wrap:wrap;gap:4px;max-width:150px;}
+  .swatch{width:20px;height:20px;border:2px solid var(--ink);cursor:pointer;border-radius:2px;}
+  .swatch.selected{outline:2px solid var(--berry);outline-offset:1px;}
+
+  #speciesListBody .srow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #00000018;}
+  #speciesListBody canvas{width:36px;height:36px;image-rendering:pixelated;border:1px solid var(--bark);flex-shrink:0;}
+  #speciesListBody .sname{font-weight:bold;font-size:12.5px;}
+  #speciesListBody .smeta{font-size:10.5px;color:#00000088;}
+  #speciesListBody .srowr{margin-left:auto;}
+  #emptyHint{font-size:12.5px;color:#00000088;}
+
+  #passInput{width:100%;padding:8px;border:2px solid var(--bark);font-family:inherit;margin:10px 0;font-size:14px;}
+
+  ::-webkit-scrollbar{width:9px;}
+  ::-webkit-scrollbar-thumb{background:var(--bark);border-radius:4px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="game"></canvas>
+
+  <div id="topbar">
+    <div class="title">🌿 PIXEL NATURA</div>
+    <div class="actions">
+      <button id="btnList" class="ghost">📖 Jurnal specii</button>
+      <button id="btnEditor">+ Adaugă specie</button>
+    </div>
+  </div>
+
+  <div id="hint">Mișcare: W A S D / săgeți &nbsp;·&nbsp; Click pe o viețuitoare pentru detalii &nbsp;·&nbsp; Intri în apă = înoți automat</div>
+  <div id="toastArea"></div>
+  <div id="bugLayer"></div>
+
+  <div id="infoModal" class="modal hidden">
+    <div class="card">
+      <button class="closeBtn" data-close="info">×</button>
+      <div id="infoPhoto"></div>
+      <h2 id="infoName">Nume</h2>
+      <div id="infoLatin"></div>
+      <p id="infoDesc"></p>
+      <div id="infoParasite" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div id="listModal" class="modal hidden">
+    <div class="card wide">
+      <button class="closeBtn" data-close="list">×</button>
+      <h2>Jurnalul speciilor</h2>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button type="button" class="small ghost" id="btnExport">⬇ Exportă tot (.json)</button>
+        <button type="button" class="small ghost" id="btnImportTrigger">⬆ Importă (.json)</button>
+        <input type="file" id="importFile" accept=".json" style="display:none;">
+      </div>
+      <div id="speciesListBody"><div id="emptyHint">Nicio specie adăugată încă. Apasă „+ Adaugă specie”.</div></div>
+    </div>
+  </div>
+
+  <div id="editorModal" class="modal hidden">
+    <div class="card wide">
+      <button class="closeBtn" data-close="editor">×</button>
+      <h2>Adaugă o specie nouă</h2>
+      <form id="speciesForm">
+        <div class="field">
+          <label>Tip</label>
+          <div class="radiorow">
+            <label><input type="radio" name="stype" value="animal" checked> Animal</label>
+            <label><input type="radio" name="stype" value="planta"> Plantă</label>
+          </div>
+        </div>
+
+        <div class="rowsplit">
+          <div class="field"><label>Nume</label><input type="text" id="fName" required placeholder="ex: Broască de lac"></div>
+          <div class="field"><label>Nume științific (latin)</label><input type="text" id="fLatin" placeholder="ex: Pelophylax ridibundus"></div>
+        </div>
+
+        <div class="field">
+          <label>Descriere / mod de viață</label>
+          <textarea id="fDesc" placeholder="Ce mănâncă, unde stă, curiozități..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>Fotografia ta</label>
+          <input type="file" id="fPhoto" accept="image/*">
+          <div class="hintText">Se redimensionează automat, nu contează mărimea originală.</div>
+        </div>
+
+        <div class="field">
+          <label>Iconiță pe hartă (16×16 px)</label>
+          <div id="iconEditor">
+            <canvas id="iconCanvas" width="224" height="224"></canvas>
+            <div>
+              <div id="palette"></div>
+              <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+                <input type="color" id="customColor" value="#4c7f4a">
+                <button type="button" class="small ghost" id="btnEraser">Gumă</button>
+                <button type="button" class="small danger" id="btnClearIcon">Șterge tot</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" id="habitatField">
+          <label>Habitat / comportament (bifează tot ce se potrivește)</label>
+          <div class="tagbox" id="tagbox"></div>
+        </div>
+
+        <div class="field" id="moveField">
+          <label>Stil(uri) de mișcare (bifează una sau mai multe)</label>
+          <div class="tagbox" id="movebox" style="grid-template-columns:1fr 1fr 1fr;max-height:150px;overflow-y:auto;"></div>
+        </div>
+
+        <div class="rowsplit">
+          <div class="field">
+            <label>Raritate (cât de des apare pe hartă)</label>
+            <select id="fRarity">
+              <option value="foarte_rar">Foarte rară (1 exemplar)</option>
+              <option value="rar">Rară (2-3)</option>
+              <option value="comun" selected>Comună (5-7)</option>
+              <option value="foarte_comun">Foarte comună (10-14)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Mărime</label>
+            <select id="fSize"><option value="mic">Mică</option><option value="mediu" selected>Medie</option><option value="mare">Mare</option></select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label><input type="checkbox" id="fParasite" style="width:auto;"> Este parazit pe o altă specie</label>
+          <select id="fHost" style="display:none;margin-top:6px;"></select>
+        </div>
+
+        <button type="submit">Salvează specia</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="passModal" class="modal hidden">
+    <div class="card">
+      <button class="closeBtn" data-close="pass">×</button>
+      <h2>Acces editor</h2>
+      <p style="font-size:13px;">Introdu parola ca să poți adăuga specii noi.</p>
+      <input type="password" id="passInput" placeholder="parolă">
+      <button id="passSubmit">Intră</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================== CONFIG ============================== */
+const TILE = 32;                 // pixeli pe ecran per celulă de teren
+const WORLD_W = 100, WORLD_H = 70; // dimensiunea lumii în celule
+const EDITOR_PASSWORD = "padure123"; // schimbă asta dacă vrei altă parolă
+
+const ZONES = {
+  lakeA:{cx:20,cy:16,r:7},
+  lakeB:{cx:76,cy:50,r:5.5},
+  forest1:{x0:4,y0:30,x1:31,y1:66},
+  forest2:{x0:56,y0:4,x1:91,y1:29},
+  garden:{x0:36,y0:9,x1:56,y1:29},
+  dark:{x0:58,y0:54,x1:80,y1:68},
+  snow:{x0:83,y0:3,x1:99,y1:19},
+  storm:{x0:1,y0:48,x1:16,y1:65}
+};
+
+const HABITAT_TAGS = [
+  ["pamant","🌳 pe pământ / iarbă"],
+  ["apa_suprafata","🌊 la suprafața apei"],
+  ["apa_subapa","🐟 sub apă"],
+  ["apa_fund","⚓ pe fundul apei"],
+  ["aer","🕊️ zboară"],
+  ["vizuina","🕳️ sapă / stă în vizuină"],
+  ["static","🍃 stă agățat, nemișcat"],
+  ["intuneric","🌙 doar în zona întunecată"],
+  ["zapada","❄️ doar în zona cu zăpadă"],
+  ["agresiv","🦟 deranjează / mușcă personajul"]
+];
+
+const MOVE_STYLES = [
+  ["zbor_haotic","🦋 zbor haotic (fluture)"],
+  ["zbor_vibrant","🐝 zbor vibrant (albină)"],
+  ["zbor_lin","🕊️ zbor lin, plutitor"],
+  ["zbor_sacadat","🐦 zbor sacadat"],
+  ["zbor_inalt","🦅 zbor înalt, circular"],
+  ["zbor_liliac","🦇 zbor eratic (liliac)"],
+  ["inot_subapa","🐟 înot sub apă"],
+  ["inot_suprafata","🦆 înot la suprafață"],
+  ["mers_fund","🦀 mers pe fundul apei"],
+  ["mers_lin","🚶 mers lin"],
+  ["alergat","🏃 alergat"],
+  ["pas_leganat","🦌 pas legănat, apăsat"],
+  ["salt","🐸 salt (broască)"],
+  ["salt_exploziv","🦗 salt exploziv (greier/purice)"],
+  ["taret_unduit","🐍 târât unduit (șarpe)"],
+  ["taret_lent","🐛 târât lent (vierme/melc)"],
+  ["mers_paianjen","🕷️ mers pe multe picioare"],
+  ["sapat","⛏️ sapă / apare-dispare"],
+  ["agatat","🍃 agățat, nemișcat"],
+  ["palpaire","✨ pâlpâire pe loc (licurici)"],
+  ["plutire_valuri","🌊 plutire pasivă pe valuri"]
+];
+
+const STYLE_PARAMS = {
+  zbor_haotic:{radius:3,interval:1.2,mode:"flutter"},
+  zbor_vibrant:{radius:2.2,interval:.8,mode:"flutter"},
+  zbor_lin:{radius:4,interval:3.5,mode:"lerp"},
+  zbor_sacadat:{radius:2.5,interval:1,mode:"hop"},
+  zbor_inalt:{radius:4.5,interval:6,mode:"circle"},
+  zbor_liliac:{radius:3,interval:1,mode:"flutter"},
+  inot_subapa:{radius:2.5,interval:3,mode:"lerp"},
+  inot_suprafata:{radius:2,interval:3.5,mode:"lerp"},
+  mers_fund:{radius:1.2,interval:2.5,mode:"hop"},
+  mers_lin:{radius:2,interval:4,mode:"lerp"},
+  alergat:{radius:3,interval:1.5,mode:"lerp"},
+  pas_leganat:{radius:1.8,interval:4.5,mode:"lerp"},
+  salt:{radius:1.5,interval:1.8,mode:"hop"},
+  salt_exploziv:{radius:2.6,interval:1.3,mode:"hop"},
+  taret_unduit:{radius:1.3,interval:5,mode:"lerp"},
+  taret_lent:{radius:.5,interval:8,mode:"lerp"},
+  mers_paianjen:{radius:1.5,interval:1,mode:"hop"},
+  sapat:{radius:.3,interval:9,mode:"peek"},
+  agatat:{radius:.1,interval:9999,mode:"static"},
+  palpaire:{radius:.2,interval:9999,mode:"pulse"},
+  plutire_valuri:{radius:1.2,interval:5,mode:"lerp"}
+};
+
+const RARITY_COUNTS = { foarte_rar:[1,1], rar:[2,3], comun:[5,7], foarte_comun:[10,14] };
+const SIZE_SCALE = { mic:.75, mediu:1, mare:1.45 };
+const BUG_MESSAGES = ["Auu, te-a înțepat!","Bâzzz... a aterizat pe tine!","O căpușă curioasă s-a agățat de tine!","Ai fost \"vizitat\" de un țânțar!","Nu pare mulțumită că ai trecut pe-acolo!"];
+
+const PALETTE_COLORS = ["#1a2a1c","#3e2d22","#5c4433","#7a5c3e","#4c7f4a","#5f9a58","#8fbf6a",
+  "#2f6f8f","#6ab3cf","#d9c589","#e8a33d","#b6473f","#f3ecd6","#ffffff","#000000","#7a4fa0"];
+
+/* ============================== UTIL / RNG ============================== */
+function mulberry32(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hash2(a,b){const s=Math.sin(a*127.1+b*311.7)*43758.5453;return s-Math.floor(s);}
+function smoothstep(t){return t*t*(3-2*t);}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function uid(){return "s_"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+
+/* ============================== WORLD GENERATION ============================== */
+const terrain = new Array(WORLD_H);
+const reeds = new Array(WORLD_H);
+for(let y=0;y<WORLD_H;y++){terrain[y]=new Array(WORLD_W).fill("grass");reeds[y]=new Array(WORLD_W).fill(false);}
+
+function inRect(x,y,r){return x>=r.x0&&x<=r.x1&&y>=r.y0&&y<=r.y1;}
+function inCircle(x,y,c){const dx=x-c.cx,dy=y-c.cy;return dx*dx+dy*dy<=c.r*c.r;}
+function isWaterTile(x,y){return terrain[y]&&terrain[y][x]==="water";}
+
+(function generateWorld(){
+  for(let y=0;y<WORLD_H;y++){
+    for(let x=0;x<WORLD_W;x++){
+      if(inCircle(x,y,ZONES.lakeA)||inCircle(x,y,ZONES.lakeB)){terrain[y][x]="water";continue;}
+      if(inRect(x,y,ZONES.forest1)||inRect(x,y,ZONES.forest2)){
+        terrain[y][x]= hash2(x,y)<0.5 ? "forest" : "grass";
+        continue;
+      }
+      if(inRect(x,y,ZONES.garden)){terrain[y][x]="garden";continue;}
+      terrain[y][x]="grass";
+    }
+  }
+  // reeds around water edges
+  for(let y=0;y<WORLD_H;y++)for(let x=0;x<WORLD_W;x++){
+    if(terrain[y][x]!=="water"){
+      let nearWater=false;
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+        const nx=x+dx,ny=y+dy;
+        if(nx>=0&&ny>=0&&nx<WORLD_W&&ny<WORLD_H&&terrain[ny][nx]==="water") nearWater=true;
+      }
+      if(nearWater && hash2(x*3.1,y*7.3)<0.4) reeds[y][x]=true;
+    }
+  }
+})();
+
+function isDark(x,y){return inRect(x,y,ZONES.dark);}
+function isSnow(x,y){return inRect(x,y,ZONES.snow);}
+function isStorm(x,y){return inRect(x,y,ZONES.storm);}
+
+// precompute candidate tile pools for species placement
+const pools = {land:[],water:[],boundary:[],dark:[],snow:[]};
+for(let y=1;y<WORLD_H-1;y++)for(let x=1;x<WORLD_W-1;x++){
+  const t=terrain[y][x];
+  if(t==="water"){
+    pools.water.push({x,y});
+    let landAdj=false;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){ if(terrain[y+dy][x+dx]!=="water") landAdj=true; }
+    if(landAdj) pools.boundary.push({x,y});
+  } else {
+    pools.land.push({x,y});
+    let waterAdj=false;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){ if(terrain[y+dy][x+dx]==="water") waterAdj=true; }
+    if(waterAdj) pools.boundary.push({x,y});
+  }
+  if(isDark(x,y)) pools.dark.push({x,y});
+  if(isSnow(x,y)) pools.snow.push({x,y});
+}
+
+function pickCandidatePool(tags){
+  const hasWater = tags.some(t=>t.startsWith("apa_"));
+  const hasLand = tags.includes("pamant")||tags.includes("vizuina")||tags.includes("static");
+  const hasAir = tags.includes("aer");
+  if(tags.includes("intuneric") && pools.dark.length) return pools.dark;
+  if(tags.includes("zapada") && pools.snow.length) return pools.snow;
+  if(hasWater && hasLand) return pools.boundary.length?pools.boundary:pools.land;
+  if(hasWater) return pools.water;
+  if(hasAir && !hasLand) return pools.land.concat(pools.boundary);
+  return pools.land;
+}
+
+/* ============================== STORAGE / SPECIES ============================== */
+let species = {};      // id -> species object (runtime, includes offscreen icon canvas)
+let editorUnlocked = false;
+
+// Storage abstraction: uses Claude's window.storage when available (inside claude.ai),
+// otherwise falls back to the browser's localStorage so the file also works as a
+// standalone site (GitHub Pages, Netlify, etc). localStorage is per-browser/device only.
+const hasCloudStorage = (typeof window.storage !== "undefined" && window.storage);
+async function storageList(prefix){
+  if(hasCloudStorage) return window.storage.list(prefix, true);
+  const keys = Object.keys(localStorage).filter(k=>k.startsWith(prefix));
+  return {keys};
+}
+async function storageGet(key){
+  if(hasCloudStorage) return window.storage.get(key, true);
+  const v = localStorage.getItem(key);
+  if(v==null) throw new Error("not found");
+  return {key, value:v};
+}
+async function storageSet(key, value){
+  if(hasCloudStorage) return window.storage.set(key, value, true);
+  localStorage.setItem(key, value); return {key, value};
+}
+async function storageDelete(key){
+  if(hasCloudStorage) return window.storage.delete(key, true);
+  localStorage.removeItem(key); return {key, deleted:true};
+}
+
+async function loadAllSpecies(){
+  try{
+    const res = await storageList("species:");
+    if(!res || !res.keys) return;
+    for(const k of res.keys){
+      try{
+        const r = await storageGet(k);
+        if(r && r.value){
+          const sp = JSON.parse(r.value);
+          sp._iconCanvas = buildIconCanvas(sp.icon);
+          species[sp.id] = sp;
+        }
+      }catch(e){/* skip broken entry */}
+    }
+  }catch(e){ console.warn("storage load failed", e); }
+  refreshSpeciesListUI();
+  populateHostSelect();
+}
+
+async function saveSpeciesToStorage(sp){
+  const clone = Object.assign({}, sp);
+  delete clone._iconCanvas;
+  await storageSet("species:"+sp.id, JSON.stringify(clone));
+}
+
+async function deleteSpeciesFromStorage(id){
+  await storageDelete("species:"+id);
+  delete species[id];
+}
+
+function buildIconCanvas(iconData){
+  const c = document.createElement("canvas"); c.width=16; c.height=16;
+  const ctx = c.getContext("2d");
+  if(iconData){
+    for(let i=0;i<256;i++){
+      const col = iconData[i];
+      if(col){ ctx.fillStyle=col; ctx.fillRect(i%16, Math.floor(i/16), 1,1); }
+    }
+  }
+  return c;
+}
+
+/* placement: compute instance homes for a species given its tags/rarity */
+function placeSpecies(sp){
+  if(sp.isParasite){ sp.instances = []; return; } // rendered relative to host, no own homes
+  const pool = pickCandidatePool(sp.habitatTags);
+  if(!pool.length){ sp.instances=[]; return; }
+  const [minC,maxC] = RARITY_COUNTS[sp.rarity] || RARITY_COUNTS.comun;
+  const count = minC + Math.floor(Math.random()*(maxC-minC+1));
+  const instances = [];
+  for(let i=0;i<count;i++){
+    const tile = pool[Math.floor(Math.random()*pool.length)];
+    const jitterX = (Math.random()-0.5)*0.6, jitterY=(Math.random()-0.5)*0.6;
+    instances.push({x:tile.x+0.5+jitterX, y:tile.y+0.5+jitterY, seed:Math.random()*1000});
+  }
+  sp.instances = instances;
+}
+
+/* ============================== PLAYER ============================== */
+const player = { x: 22, y: 10, speed: 4.6, swimSpeed: 3.0, facing:1, swimming:false, vx:0, vy:0 };
+const keys = {};
+window.addEventListener("keydown", e=>{
+  if(isTypingTarget(e.target)) return;
+  keys[e.key.toLowerCase()]=true;
+});
+window.addEventListener("keyup", e=>{ keys[e.key.toLowerCase()]=false; });
+function isTypingTarget(el){ return el && (el.tagName==="INPUT"||el.tagName==="TEXTAREA"||el.tagName==="SELECT"); }
+
+function updatePlayer(dt){
+  if(anyModalOpen()) return;
+  let dx=0, dy=0;
+  if(keys["w"]||keys["arrowup"]) dy-=1;
+  if(keys["s"]||keys["arrowdown"]) dy+=1;
+  if(keys["a"]||keys["arrowleft"]) dx-=1;
+  if(keys["d"]||keys["arrowright"]) dx+=1;
+  const len = Math.hypot(dx,dy);
+  player.swimming = isWaterTile(Math.floor(player.x), Math.floor(player.y));
+  const sp = player.swimming ? player.swimSpeed : player.speed;
+  if(len>0){
+    dx/=len; dy/=len;
+    if(dx>0) player.facing=1; else if(dx<0) player.facing=-1;
+    player.x = clamp(player.x + dx*sp*dt, 1, WORLD_W-1);
+    player.y = clamp(player.y + dy*sp*dt, 1, WORLD_H-1);
+  }
+}
+
+/* ============================== ANIMAL POSITION LOGIC ============================== */
+function computeInstancePos(sp, inst, t){
+  if(sp.type==="planta") return {x:inst.x, y:inst.y, visible:true, alpha:1, glow:false};
+  const styleKey = (sp.movementStyles && sp.movementStyles[0]) || "mers_lin";
+  const params = STYLE_PARAMS[styleKey] || STYLE_PARAMS.mers_lin;
+  const seed = inst.seed;
+  let dx=0, dy=0, visible=true, alpha=1, glow=false;
+
+  if(params.mode==="static"){ /* no movement */ }
+  else if(params.mode==="peek"){
+    const frac = ((t/params.interval + seed) % 1 + 1) % 1;
+    visible = frac < 0.12;
+  }
+  else if(params.mode==="pulse"){
+    alpha = 0.35 + 0.65*Math.abs(Math.sin(t*2.2 + seed*10));
+    dx = Math.sin(t*0.5+seed)*0.4; dy = Math.cos(t*0.4+seed)*0.2;
+    glow = true;
+  }
+  else if(params.mode==="circle"){
+    dx = Math.cos(t*0.3+seed*6)*params.radius;
+    dy = Math.sin(t*0.3+seed*6)*params.radius*0.5;
+  }
+  else {
+    const idx = Math.floor(t/params.interval + seed*7);
+    const progRaw = ((t/params.interval + seed*7) % 1 + 1) % 1;
+    const angleA = hash2(idx,seed)*Math.PI*2, angleB = hash2(idx+1,seed)*Math.PI*2;
+    const rA = hash2(idx,seed+1)*params.radius, rB = hash2(idx+1,seed+1)*params.radius;
+    const ax=Math.cos(angleA)*rA, ay=Math.sin(angleA)*rA*0.6;
+    const bx=Math.cos(angleB)*rB, by=Math.sin(angleB)*rB*0.6;
+    const prog = params.mode==="hop" ? Math.pow(progRaw,0.4) : smoothstep(progRaw);
+    dx = ax+(bx-ax)*prog; dy = ay+(by-ay)*prog;
+    if(params.mode==="hop") dy -= Math.sin(progRaw*Math.PI)*0.3;
+    if(params.mode==="flutter"){ dx += Math.sin(t*9+seed*13)*0.15; dy += Math.cos(t*7+seed*17)*0.15; }
+  }
+  return {x:inst.x+dx, y:inst.y+dy, visible, alpha, glow};
+}
+
+/* ============================== RENDERING ============================== */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener("resize", resizeCanvas); resizeCanvas();
+
+function tileBaseColor(x,y){
+  const t = terrain[y][x];
+  let c;
+  if(t==="water") c = "#2f6f8f";
+  else if(t==="forest") c = "#3f6e3d";
+  else if(t==="garden") c = "#5f9a58";
+  else c = "#4c7f4a";
+  if(isDark(x,y)) c = shadeColor(c,-0.42);
+  if(isSnow(x,y)) c = shadeColor(c, t==="water"? -0.1 : 0.55);
+  if(isStorm(x,y)) c = shadeColor(c,-0.28);
+  return c;
+}
+function shadeColor(hex, amt){
+  const n = parseInt(hex.slice(1),16);
+  let r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  const mix = amt>0 ? 255 : 0; const a = Math.abs(amt);
+  r = Math.round(r+(mix-r)*a); g=Math.round(g+(mix-g)*a); b=Math.round(b+(mix-b)*a);
+  return "rgb("+r+","+g+","+b+")";
+}
+
+let camX=0, camY=0;
+function updateCamera(){
+  camX = clamp(player.x*TILE - canvas.width/2, 0, Math.max(0,WORLD_W*TILE-canvas.width));
+  camY = clamp(player.y*TILE - canvas.height/2, 0, Math.max(0,WORLD_H*TILE-canvas.height));
+}
+
+function drawTerrain(){
+  const startX = Math.max(0, Math.floor(camX/TILE));
+  const startY = Math.max(0, Math.floor(camY/TILE));
+  const endX = Math.min(WORLD_W, startX + Math.ceil(canvas.width/TILE)+2);
+  const endY = Math.min(WORLD_H, startY + Math.ceil(canvas.height/TILE)+2);
+  for(let y=startY;y<endY;y++){
+    for(let x=startX;x<endX;x++){
+      const sx = x*TILE-camX, sy = y*TILE-camY;
+      ctx.fillStyle = tileBaseColor(x,y);
+      ctx.fillRect(sx,sy,TILE,TILE);
+      const t = terrain[y][x];
+      if(t==="forest"){
+        ctx.fillStyle = shadeColor("#2e4a26", hash2(x,y)*0.15-0.07);
+        const r = TILE*0.32;
+        ctx.beginPath(); ctx.arc(sx+TILE*0.5, sy+TILE*0.42, r, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#5c4433"; ctx.fillRect(sx+TILE*0.46, sy+TILE*0.6, TILE*0.08, TILE*0.35);
+      } else if(t==="garden" && hash2(x*2,y*2)<0.3){
+        ctx.fillStyle = ["#e8a33d","#b6473f","#f3ecd6","#7a4fa0"][Math.floor(hash2(x,y*3)*4)];
+        ctx.beginPath(); ctx.arc(sx+TILE*0.5, sy+TILE*0.5, TILE*0.09, 0, Math.PI*2); ctx.fill();
+      } else if(reeds[y][x]){
+        ctx.strokeStyle="#3f6e3d"; ctx.lineWidth=2;
+        for(let i=0;i<3;i++){
+          const ox = sx+TILE*(0.25+i*0.25);
+          ctx.beginPath(); ctx.moveTo(ox, sy+TILE); ctx.lineTo(ox+3, sy+TILE*0.35); ctx.stroke();
+        }
+      }
+      if(isSnow(x,y) && t!=="water" && hash2(x*5,y*5)<0.5){
+        ctx.fillStyle="rgba(255,255,255,.5)";
+        ctx.fillRect(sx+hash2(x,y)*TILE*0.6, sy+hash2(y,x)*TILE*0.6, 4,4);
+      }
+    }
+  }
+}
+
+function drawIcon(sp, wx, wy, scale, alpha, glow){
+  const c = sp._iconCanvas; if(!c) return;
+  const sizePx = TILE*1.15*scale;
+  const sx = wx*TILE-camX-sizePx/2, sy = wy*TILE-camY-sizePx/2;
+  ctx.save(); ctx.globalAlpha = alpha;
+  if(glow){
+    const grad = ctx.createRadialGradient(sx+sizePx/2, sy+sizePx/2, 1, sx+sizePx/2, sy+sizePx/2, sizePx);
+    grad.addColorStop(0,"rgba(255,240,150,.55)"); grad.addColorStop(1,"rgba(255,240,150,0)");
+    ctx.fillStyle=grad; ctx.fillRect(sx-sizePx,sy-sizePx,sizePx*3,sizePx*3);
+  }
+  ctx.drawImage(c, sx, sy, sizePx, sizePx);
+  ctx.restore();
+}
+
+function drawPlayer(){
+  const sx = player.x*TILE-camX, sy = player.y*TILE-camY;
+  ctx.save(); ctx.translate(sx,sy); ctx.scale(player.facing,1);
+  if(player.swimming){
+    // simple swimmer: head + shoulders above the water line, paddling arms
+    ctx.fillStyle="#2f6f8f"; ctx.globalAlpha=0.5;
+    ctx.beginPath(); ctx.ellipse(0,4,13,4,0,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle="#e8b98a"; ctx.beginPath(); ctx.arc(6,-6,5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle="#b6473f"; ctx.beginPath(); ctx.ellipse(-2,0,9,5,0,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle="#e8b98a"; ctx.lineWidth=3; ctx.lineCap="round";
+    const flap = Math.sin(performance.now()/140)*7;
+    ctx.beginPath(); ctx.moveTo(-6,-1); ctx.lineTo(-13,-1+flap); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(2,3); ctx.lineTo(9,3-flap); ctx.stroke();
+  } else {
+    // bicycle frame
+    ctx.strokeStyle="#3e2d22"; ctx.lineWidth=2.5; ctx.lineCap="round";
+    ctx.beginPath(); ctx.arc(-9,13,7,0,Math.PI*2); ctx.stroke();   // rear wheel
+    ctx.beginPath(); ctx.arc(9,13,7,0,Math.PI*2); ctx.stroke();    // front wheel
+    ctx.beginPath();
+    ctx.moveTo(-9,13); ctx.lineTo(-1,1);      // seat post
+    ctx.lineTo(9,13);                          // down to front wheel hub
+    ctx.moveTo(-1,1); ctx.lineTo(4,-3);        // top tube to handlebar post
+    ctx.lineTo(9,13);                          // handlebar post to front hub
+    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,13); ctx.lineTo(-9,13); ctx.moveTo(0,13); ctx.lineTo(9,13); ctx.stroke(); // pedal cranks (rough)
+    // seat + handlebar
+    ctx.fillStyle="#3e2d22"; ctx.fillRect(-4,-1,6,2);
+    ctx.beginPath(); ctx.moveTo(4,-3); ctx.lineTo(8,-4); ctx.stroke();
+
+    // rider torso
+    ctx.fillStyle="#b6473f"; ctx.beginPath();
+    ctx.moveTo(-1,-2); ctx.lineTo(4,-15); ctx.lineTo(9,-15); ctx.lineTo(4,-2); ctx.closePath(); ctx.fill();
+    // arm to handlebar
+    ctx.strokeStyle="#e8b98a"; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(6,-13); ctx.lineTo(8,-4); ctx.stroke();
+    // leg to pedal
+    ctx.beginPath(); ctx.moveTo(2,-3); ctx.lineTo(0,13); ctx.stroke();
+    // head
+    ctx.fillStyle="#e8b98a"; ctx.beginPath(); ctx.arc(7,-19,5,0,Math.PI*2); ctx.fill();
+    // hair
+    ctx.fillStyle="#3e2d22"; ctx.beginPath(); ctx.arc(7,-21,5,Math.PI,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* weather */
+let rainOn=false, nextWeatherCheck=4;
+const globalRain=[]; for(let i=0;i<90;i++) globalRain.push({x:Math.random(),y:Math.random(),s:Math.random()});
+const snowFlakes=[]; for(let i=0;i<70;i++) snowFlakes.push({t:Math.random()*(ZONES.snow.x1-ZONES.snow.x0)+ZONES.snow.x0, u:Math.random()*(ZONES.snow.y1-ZONES.snow.y0)+ZONES.snow.y0, s:Math.random()});
+const stormRain=[]; for(let i=0;i<60;i++) stormRain.push({t:Math.random()*(ZONES.storm.x1-ZONES.storm.x0)+ZONES.storm.x0, u:Math.random()*(ZONES.storm.y1-ZONES.storm.y0)+ZONES.storm.y0, s:Math.random()});
+
+function updateWeather(dt,t){
+  nextWeatherCheck -= dt;
+  if(nextWeatherCheck<=0){
+    nextWeatherCheck = 20+Math.random()*30;
+    if(!rainOn && Math.random()<0.3){ rainOn=true; setTimeout(()=>rainOn=false, (8+Math.random()*10)*1000); }
+  }
+}
+function drawWeather(t){
+  // permanent snow zone
+  ctx.fillStyle="rgba(255,255,255,.9)";
+  for(const f of snowFlakes){
+    const wx=f.t, wy=(f.u + t*0.5*f.s) % (ZONES.snow.y1-ZONES.snow.y0) + ZONES.snow.y0;
+    const sx=wx*TILE-camX, sy=wy*TILE-camY;
+    if(sx>-10&&sx<canvas.width+10&&sy>-10&&sy<canvas.height+10) ctx.fillRect(sx,sy,3,3);
+  }
+  // permanent storm zone rain + occasional flicker
+  ctx.strokeStyle="rgba(180,200,255,.55)"; ctx.lineWidth=1.5;
+  for(const f of stormRain){
+    const wx=f.t, wy=(f.u + t*6*f.s) % (ZONES.storm.y1-ZONES.storm.y0) + ZONES.storm.y0;
+    const sx=wx*TILE-camX, sy=wy*TILE-camY;
+    if(sx>-10&&sx<canvas.width+10&&sy>-10&&sy<canvas.height+10){ ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx-3,sy+9); ctx.stroke(); }
+  }
+  if(Math.sin(t*0.6)>0.985){ ctx.fillStyle="rgba(255,255,255,.10)"; ctx.fillRect(0,0,canvas.width,canvas.height); }
+  // global rare rain
+  if(rainOn){
+    ctx.strokeStyle="rgba(220,230,255,.35)"; ctx.lineWidth=1;
+    for(const f of globalRain){
+      const sx = f.x*canvas.width, sy = ((f.y + t*1.6*f.s)%1)*canvas.height;
+      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx-4,sy+11); ctx.stroke();
+    }
+  }
+}
+
+/* click / interaction */
+let hoverList = []; // filled each frame: clickable entities with screen coords
+const bugCooldowns = {};
+function findClickTarget(mx,my){
+  let best=null, bestD=999999;
+  for(const h of hoverList){
+    const d = Math.hypot(h.sx-mx, h.sy-my);
+    if(d < h.hitRadius && d<bestD){ best=h; bestD=d; }
+  }
+  return best;
+}
+
+canvas.addEventListener("click", (e)=>{
+  if(anyModalOpen()) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX-rect.left, my = e.clientY-rect.top;
+  const target = findClickTarget(mx,my);
+  if(target) openInfo(target.sp, target.hostSp||null);
+});
+
+function openInfo(sp, hostSp){
+  document.getElementById("infoName").textContent = sp.name || "(fără nume)";
+  document.getElementById("infoLatin").textContent = sp.latin ? sp.latin : "";
+  document.getElementById("infoDesc").textContent = sp.desc || "";
+  const photoBox = document.getElementById("infoPhoto");
+  photoBox.innerHTML = sp.photo ? `<img src="${sp.photo}">` : `<div style="font-size:40px;">🌱</div>`;
+  const pnote = document.getElementById("infoParasite");
+  if(hostSp){ pnote.style.display="block"; pnote.textContent = "Trăiește ca parazit pe: " + hostSp.name; }
+  else if(sp.isParasite){ pnote.style.display="block"; pnote.textContent = "Este parazit."; }
+  else pnote.style.display="none";
+  showModal("infoModal");
+}
+
+/* ============================== MAIN LOOP ============================== */
+let startTime = performance.now();
+function frame(now){
+  const t = (now-startTime)/1000;
+  const dt = Math.min(0.05, (frame._last!=null)? (now-frame._last)/1000 : 0.016);
+  frame._last = now;
+
+  updatePlayer(dt);
+  updateWeather(dt,t);
+  updateCamera();
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawTerrain();
+
+  hoverList = [];
+  const renderList = [];
+
+  for(const id in species){
+    const sp = species[id];
+    if(sp.isParasite) continue;
+    if(!sp.instances) continue;
+    for(let i=0;i<sp.instances.length;i++){
+      const pos = computeInstancePos(sp, sp.instances[i], t);
+      if(!pos.visible) continue;
+      renderList.push({worldY:pos.y, draw:()=>{
+        const scale = SIZE_SCALE[sp.size]||1;
+        drawIcon(sp,pos.x,pos.y,scale,pos.alpha,pos.glow);
+        const sxScr = pos.x*TILE-camX, syScr = pos.y*TILE-camY;
+        hoverList.push({sx:sxScr, sy:syScr, hitRadius:TILE*0.7*scale, sp});
+        if(sp.habitatTags && sp.habitatTags.includes("agresiv")){
+          const d = Math.hypot(pos.x-player.x,pos.y-player.y);
+          const key = sp.id+"_"+i;
+          if(d<1.0 && (!bugCooldowns[key] || t-bugCooldowns[key]>4)){
+            bugCooldowns[key]=t; spawnBugMsg(sp.name);
+          }
+        }
+      }});
+    }
+  }
+  // parasites drawn relative to host
+  for(const id in species){
+    const sp = species[id];
+    if(!sp.isParasite || !sp.hostId) continue;
+    const host = species[sp.hostId];
+    if(!host || !host.instances) continue;
+    for(let i=0;i<host.instances.length;i++){
+      const hpos = computeInstancePos(host, host.instances[i], t);
+      if(!hpos.visible) continue;
+      const px = hpos.x+0.32, py = hpos.y+0.32;
+      renderList.push({worldY:py, draw:()=>{
+        drawIcon(sp, px, py, 0.55, 1, false);
+        hoverList.push({sx:px*TILE-camX, sy:py*TILE-camY, hitRadius:TILE*0.4, sp, hostSp:host});
+      }});
+    }
+  }
+  renderList.push({worldY:player.y, draw:drawPlayer});
+  renderList.sort((a,b)=>a.worldY-b.worldY);
+  for(const r of renderList) r.draw();
+
+  drawWeather(t);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+function spawnBugMsg(name){
+  const el = document.createElement("div");
+  el.className="bugmsg";
+  el.textContent = BUG_MESSAGES[Math.floor(Math.random()*BUG_MESSAGES.length)];
+  const sx = player.x*TILE-camX, sy = player.y*TILE-camY-24;
+  el.style.left = sx+"px"; el.style.top = sy+"px";
+  document.getElementById("bugLayer").appendChild(el);
+  setTimeout(()=>{ el.style.transition="opacity .4s"; el.style.opacity="0"; setTimeout(()=>el.remove(),400); }, 1200);
+}
+
+/* ============================== UI: MODALS / TOASTS ============================== */
+function showModal(id){ document.getElementById(id).classList.remove("hidden"); }
+function hideModal(id){ document.getElementById(id).classList.add("hidden"); }
+function anyModalOpen(){ return !document.getElementById("infoModal").classList.contains("hidden")
+  || !document.getElementById("listModal").classList.contains("hidden")
+  || !document.getElementById("editorModal").classList.contains("hidden")
+  || !document.getElementById("passModal").classList.contains("hidden"); }
+
+document.querySelectorAll(".closeBtn").forEach(b=>b.addEventListener("click", ()=>{
+  const key = b.dataset.close;
+  hideModal(key+"Modal");
+}));
+document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click", (e)=>{ if(e.target===m) m.classList.add("hidden"); }));
+
+function showToast(msg){
+  const el = document.createElement("div"); el.className="toast"; el.textContent=msg;
+  document.getElementById("toastArea").appendChild(el);
+  setTimeout(()=>{ el.style.transition="opacity .4s"; el.style.opacity="0"; setTimeout(()=>el.remove(),400); }, 3200);
+}
+
+/* ============================== EDITOR ACCESS ============================== */
+document.getElementById("btnEditor").addEventListener("click", ()=>{
+  if(editorUnlocked) showModal("editorModal");
+  else showModal("passModal");
+});
+document.getElementById("passSubmit").addEventListener("click", tryPass);
+document.getElementById("passInput").addEventListener("keydown", e=>{ if(e.key==="Enter") tryPass(); });
+function tryPass(){
+  const v = document.getElementById("passInput").value;
+  if(v === EDITOR_PASSWORD){
+    editorUnlocked = true; hideModal("passModal"); document.getElementById("passInput").value="";
+    showModal("editorModal"); refreshSpeciesListUI();
+    showToast("Editor deblocat.");
+  } else { showToast("Parolă greșită."); }
+}
+
+/* ============================== EDITOR: TAGS ============================== */
+const tagbox = document.getElementById("tagbox");
+HABITAT_TAGS.forEach(([val,label])=>{
+  const lab = document.createElement("label");
+  lab.innerHTML = `<input type="checkbox" name="tag" value="${val}"> ${label}`;
+  tagbox.appendChild(lab);
+});
+const movebox = document.getElementById("movebox");
+MOVE_STYLES.forEach(([val,label])=>{
+  const lab = document.createElement("label");
+  lab.innerHTML = `<input type="checkbox" name="move" value="${val}"> ${label}`;
+  movebox.appendChild(lab);
+});
+
+document.querySelectorAll('input[name=stype]').forEach(r=>r.addEventListener("change", ()=>{
+  const isPlant = document.querySelector('input[name=stype]:checked').value === "planta";
+  document.getElementById("moveField").style.display = isPlant ? "none" : "block";
+}));
+
+document.getElementById("fParasite").addEventListener("change", (e)=>{
+  document.getElementById("fHost").style.display = e.target.checked ? "block" : "none";
+});
+function populateHostSelect(){
+  const sel = document.getElementById("fHost");
+  sel.innerHTML = "";
+  Object.values(species).forEach(sp=>{
+    if(sp.isParasite) return;
+    const opt = document.createElement("option"); opt.value=sp.id; opt.textContent=sp.name;
+    sel.appendChild(opt);
+  });
+}
+
+/* ============================== EDITOR: ICON PAINTER ============================== */
+let iconData = new Array(256).fill(null);
+let currentColor = PALETTE_COLORS[4];
+const iconCanvas = document.getElementById("iconCanvas");
+const iconCtx = iconCanvas.getContext("2d");
+const CELL = iconCanvas.width/16;
+
+const paletteEl = document.getElementById("palette");
+PALETTE_COLORS.forEach((c,i)=>{
+  const sw = document.createElement("div"); sw.className="swatch"+(i===4?" selected":"");
+  sw.style.background=c; sw.dataset.color=c;
+  sw.addEventListener("click", ()=>{ currentColor=c; document.querySelectorAll(".swatch").forEach(s=>s.classList.remove("selected")); sw.classList.add("selected"); });
+  paletteEl.appendChild(sw);
+});
+document.getElementById("customColor").addEventListener("input", (e)=>{ currentColor=e.target.value; document.querySelectorAll(".swatch").forEach(s=>s.classList.remove("selected")); });
+document.getElementById("btnEraser").addEventListener("click", ()=>{ currentColor=null; document.querySelectorAll(".swatch").forEach(s=>s.classList.remove("selected")); });
+document.getElementById("btnClearIcon").addEventListener("click", ()=>{ iconData.fill(null); redrawIconCanvas(); });
+
+function redrawIconCanvas(){
+  iconCtx.clearRect(0,0,iconCanvas.width,iconCanvas.height);
+  for(let i=0;i<256;i++){
+    const col = iconData[i];
+    if(col){ const x=(i%16)*CELL, y=Math.floor(i/16)*CELL; iconCtx.fillStyle=col; iconCtx.fillRect(x,y,CELL,CELL); }
+  }
+  iconCtx.strokeStyle="rgba(0,0,0,.08)";
+  for(let i=0;i<=16;i++){ iconCtx.beginPath(); iconCtx.moveTo(i*CELL,0); iconCtx.lineTo(i*CELL,iconCanvas.height); iconCtx.stroke();
+    iconCtx.beginPath(); iconCtx.moveTo(0,i*CELL); iconCtx.lineTo(iconCanvas.width,i*CELL); iconCtx.stroke(); }
+}
+redrawIconCanvas();
+
+let painting=false;
+function paintAt(clientX,clientY){
+  const rect = iconCanvas.getBoundingClientRect();
+  const x = Math.floor((clientX-rect.left)/CELL), y = Math.floor((clientY-rect.top)/CELL);
+  if(x<0||y<0||x>15||y>15) return;
+  iconData[y*16+x] = currentColor;
+  redrawIconCanvas();
+}
+iconCanvas.addEventListener("mousedown", e=>{ painting=true; paintAt(e.clientX,e.clientY); });
+window.addEventListener("mouseup", ()=>painting=false);
+iconCanvas.addEventListener("mousemove", e=>{ if(painting) paintAt(e.clientX,e.clientY); });
+iconCanvas.addEventListener("touchstart", e=>{ const tt=e.touches[0]; paintAt(tt.clientX,tt.clientY); e.preventDefault(); }, {passive:false});
+iconCanvas.addEventListener("touchmove", e=>{ const tt=e.touches[0]; paintAt(tt.clientX,tt.clientY); e.preventDefault(); }, {passive:false});
+
+/* ============================== EDITOR: PHOTO ============================== */
+let photoDataUrl = null;
+document.getElementById("fPhoto").addEventListener("change", async (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  photoDataUrl = await resizeImageFile(file, 360);
+  showToast("Fotografie încărcată.");
+});
+function resizeImageFile(file, maxDim){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w=img.width, h=img.height;
+        if(w>h){ if(w>maxDim){ h=Math.round(h*maxDim/w); w=maxDim; } }
+        else { if(h>maxDim){ w=Math.round(w*maxDim/h); h=maxDim; } }
+        const c=document.createElement("canvas"); c.width=w; c.height=h;
+        c.getContext("2d").drawImage(img,0,0,w,h);
+        resolve(c.toDataURL("image/jpeg",0.72));
+      };
+      img.onerror = reject; img.src = e.target.result;
+    };
+    reader.onerror = reject; reader.readAsDataURL(file);
+  });
+}
+
+/* ============================== EDITOR: SUBMIT ============================== */
+document.getElementById("speciesForm").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const type = document.querySelector('input[name=stype]:checked').value;
+  const name = document.getElementById("fName").value.trim();
+  if(!name){ showToast("Numele e obligatoriu."); return; }
+  const habitatTags = Array.from(document.querySelectorAll('input[name=tag]:checked')).map(c=>c.value);
+  const movementStyles = Array.from(document.querySelectorAll('input[name=move]:checked')).map(c=>c.value);
+  const isParasite = document.getElementById("fParasite").checked;
+  const hostId = isParasite ? document.getElementById("fHost").value : null;
+
+  if(!habitatTags.length){ showToast("Bifează cel puțin un habitat."); return; }
+  if(type==="animal" && !movementStyles.length && !isParasite){ showToast("Alege cel puțin un stil de mișcare."); return; }
+  if(isParasite && !hostId){ showToast("Alege o gazdă pentru parazit."); return; }
+
+  const sp = {
+    id: uid(), type, name,
+    latin: document.getElementById("fLatin").value.trim(),
+    desc: document.getElementById("fDesc").value.trim(),
+    photo: photoDataUrl,
+    icon: iconData.slice(),
+    habitatTags, movementStyles,
+    rarity: document.getElementById("fRarity").value,
+    size: document.getElementById("fSize").value,
+    isParasite, hostId,
+    createdAt: Date.now()
+  };
+  sp._iconCanvas = buildIconCanvas(sp.icon);
+  placeSpecies(sp);
+  species[sp.id] = sp;
+
+  try{ await saveSpeciesToStorage(sp); }catch(err){ showToast("Eroare la salvare: "+err.message); }
+
+  showToast("„"+name+"” a fost adăugată în lume!");
+  resetEditorForm();
+  hideModal("editorModal");
+  refreshSpeciesListUI();
+  populateHostSelect();
+});
+
+function resetEditorForm(){
+  document.getElementById("speciesForm").reset();
+  iconData.fill(null); redrawIconCanvas();
+  photoDataUrl = null;
+  document.getElementById("fHost").style.display="none";
+  document.getElementById("moveField").style.display="block";
+}
+
+/* ============================== SPECIES LIST (JOURNAL) ============================== */
+document.getElementById("btnList").addEventListener("click", ()=>{ refreshSpeciesListUI(); showModal("listModal"); });
+function refreshSpeciesListUI(){
+  const body = document.getElementById("speciesListBody");
+  const list = Object.values(species).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  if(!list.length){ body.innerHTML = `<div id="emptyHint">Nicio specie adăugată încă. Apasă „+ Adaugă specie”.</div>`; return; }
+  body.innerHTML = "";
+  list.forEach(sp=>{
+    const row = document.createElement("div"); row.className="srow";
+    const cv = document.createElement("canvas"); cv.width=16; cv.height=16;
+    cv.getContext("2d").drawImage(sp._iconCanvas || buildIconCanvas(sp.icon),0,0);
+    const info = document.createElement("div");
+    info.innerHTML = `<div class="sname">${sp.type==="planta"?"🌱":"🐾"} ${sp.name}</div><div class="smeta">${sp.latin||""} · ${sp.rarity.replace("_"," ")}${sp.isParasite?" · parazit":""}</div>`;
+    row.appendChild(cv); row.appendChild(info);
+    if(editorUnlocked){
+      const del = document.createElement("button"); del.className="small danger srowr"; del.textContent="Șterge";
+      del.addEventListener("click", async ()=>{
+        await deleteSpeciesFromStorage(sp.id);
+        showToast("„"+sp.name+"” a fost ștearsă.");
+        refreshSpeciesListUI(); populateHostSelect();
+      });
+      row.appendChild(del);
+    }
+    body.appendChild(row);
+  });
+}
+
+/* ============================== EXPORT / IMPORT ============================== */
+document.getElementById("btnExport").addEventListener("click", ()=>{
+  const arr = Object.values(species).map(sp=>{ const c=Object.assign({},sp); delete c._iconCanvas; return c; });
+  const blob = new Blob([JSON.stringify(arr,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href=url; a.download="pixel-natura-specii.json"; a.click();
+  URL.revokeObjectURL(url);
+  showToast("Fișier exportat: pixel-natura-specii.json");
+});
+document.getElementById("btnImportTrigger").addEventListener("click", ()=>document.getElementById("importFile").click());
+document.getElementById("importFile").addEventListener("change", async (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  try{
+    const text = await file.text();
+    const arr = JSON.parse(text);
+    let count=0;
+    for(const sp of arr){
+      if(!sp.id || !sp.name) continue;
+      sp._iconCanvas = buildIconCanvas(sp.icon);
+      if(!sp.instances) placeSpecies(sp);
+      species[sp.id] = sp;
+      await saveSpeciesToStorage(sp);
+      count++;
+    }
+    showToast(count+" specii importate.");
+    refreshSpeciesListUI(); populateHostSelect();
+  }catch(err){ showToast("Fișier invalid: "+err.message); }
+  e.target.value="";
+});
+
+/* ============================== INIT ============================== */
+loadAllSpecies();
+</script>
+</body>
+</html>
