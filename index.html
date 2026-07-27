@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -109,14 +109,14 @@
   <canvas id="game"></canvas>
 
   <div id="topbar">
-    <div class="title">🌿 PIXEL NATURA <span style="font-size:10px;opacity:.6;font-weight:normal;">v1.1</span></div>
+    <div class="title">🌿 PIXEL NATURA <span style="font-size:10px;opacity:.6;font-weight:normal;">v2.0</span></div>
     <div class="actions">
-      <button id="btnList" class="ghost">📖 Jurnal specii</button>
-      <button id="btnEditor">+ Adaugă specie</button>
+      <button id="btnList" class="ghost">📖 Species Journal</button>
+      <button id="btnEditor">+ Add species</button>
     </div>
   </div>
 
-  <div id="hint">Mișcare: W A S D / săgeți &nbsp;·&nbsp; Click pe o viețuitoare pentru detalii &nbsp;·&nbsp; Intri în apă = înoți automat</div>
+  <div id="hint">Move: WASD / arrow keys &nbsp;·&nbsp; Click a creature for details &nbsp;·&nbsp; Enter water = auto-swim</div>
   <div id="toastArea"></div>
   <div id="bugLayer"></div>
 
@@ -124,7 +124,7 @@
     <div class="card">
       <button class="closeBtn" data-close="info">×</button>
       <div id="infoPhoto"></div>
-      <h2 id="infoName">Nume</h2>
+      <h2 id="infoName">Name</h2>
       <div id="infoLatin"></div>
       <p id="infoDesc"></p>
       <div id="infoParasite" style="display:none;"></div>
@@ -134,92 +134,87 @@
   <div id="listModal" class="modal hidden">
     <div class="card wide">
       <button class="closeBtn" data-close="list">×</button>
-      <h2>Jurnalul speciilor</h2>
+      <h2>Species Journal</h2>
       <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button type="button" class="small ghost" id="btnExport">⬇ Exportă tot (.json)</button>
-        <button type="button" class="small ghost" id="btnImportTrigger">⬆ Importă (.json)</button>
+        <button type="button" class="small ghost" id="btnExport">⬇ Export all (.json)</button>
+        <button type="button" class="small ghost" id="btnImportTrigger">⬆ Import (.json)</button>
         <input type="file" id="importFile" accept=".json" style="display:none;">
       </div>
-      <div id="speciesListBody"><div id="emptyHint">Nicio specie adăugată încă. Apasă „+ Adaugă specie”.</div></div>
+      <div id="speciesListBody"><div id="emptyHint">No species added yet. Tap “+ Add species”.</div></div>
     </div>
   </div>
 
   <div id="editorModal" class="modal hidden">
     <div class="card wide">
       <button class="closeBtn" data-close="editor">×</button>
-      <h2>Adaugă o specie nouă</h2>
+      <h2>Add a new animal</h2>
       <form id="speciesForm">
-        <div class="field">
-          <label>Tip</label>
-          <div class="radiorow">
-            <label><input type="radio" name="stype" value="animal" checked> Animal</label>
-            <label><input type="radio" name="stype" value="planta"> Plantă</label>
-          </div>
-        </div>
-
         <div class="rowsplit">
-          <div class="field"><label>Nume</label><input type="text" id="fName" required placeholder="ex: Broască de lac"></div>
-          <div class="field"><label>Nume științific (latin)</label><input type="text" id="fLatin" placeholder="ex: Pelophylax ridibundus"></div>
+          <div class="field"><label>Name</label><input type="text" id="fName" required placeholder="e.g. Lake frog"></div>
+          <div class="field"><label>Scientific (Latin) name</label><input type="text" id="fLatin" placeholder="e.g. Pelophylax ridibundus"></div>
         </div>
 
         <div class="field">
-          <label>Descriere / mod de viață</label>
-          <textarea id="fDesc" placeholder="Ce mănâncă, unde stă, curiozități..."></textarea>
+          <label>Description / way of life</label>
+          <textarea id="fDesc" placeholder="What it eats, where it lives, fun facts..."></textarea>
         </div>
 
         <div class="field">
-          <label>Fotografia ta</label>
+          <label>Your photo</label>
           <input type="file" id="fPhoto" accept="image/*">
-          <div class="hintText">Se redimensionează automat, nu contează mărimea originală.</div>
+          <div class="hintText">Resized automatically — original size doesn't matter.</div>
         </div>
 
         <div class="field">
-          <label>Iconiță pe hartă (16×16 px)</label>
+          <label>Map icon (16×16 px)</label>
           <div id="iconEditor">
             <canvas id="iconCanvas" width="224" height="224"></canvas>
             <div>
               <div id="palette"></div>
               <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
                 <input type="color" id="customColor" value="#4c7f4a">
-                <button type="button" class="small ghost" id="btnEraser">Gumă</button>
-                <button type="button" class="small danger" id="btnClearIcon">Șterge tot</button>
+                <button type="button" class="small ghost" id="btnEraser">Eraser</button>
+                <button type="button" class="small danger" id="btnClearIcon">Clear all</button>
               </div>
             </div>
           </div>
         </div>
 
         <div class="field" id="habitatField">
-          <label>Habitat / comportament (bifează tot ce se potrivește)</label>
+          <label>Habitat / behavior (check everything that applies)</label>
           <div class="tagbox" id="tagbox"></div>
+          <select id="fHost" style="display:none;margin-top:8px;"></select>
         </div>
 
         <div class="field" id="moveField">
-          <label>Stil(uri) de mișcare (bifează una sau mai multe)</label>
+          <label>Movement style(s) (check one or more)</label>
           <div class="tagbox" id="movebox" style="grid-template-columns:1fr 1fr 1fr;max-height:150px;overflow-y:auto;"></div>
+          <div class="hintText">Pick more than one (e.g. a swan: surface swim + gliding flight) and it will alternate between them over time.</div>
         </div>
 
         <div class="rowsplit">
           <div class="field">
-            <label>Raritate (cât de des apare pe hartă)</label>
+            <label>Rarity (how often it appears on the map)</label>
             <select id="fRarity">
-              <option value="foarte_rar">Foarte rară (1 exemplar)</option>
-              <option value="rar">Rară (2-3)</option>
-              <option value="comun" selected>Comună (5-7)</option>
-              <option value="foarte_comun">Foarte comună (10-14)</option>
+              <option value="very_rare">Very rare (1-3)</option>
+              <option value="rare">Rare (3-5)</option>
+              <option value="common" selected>Common (7-10)</option>
+              <option value="very_common">Very common (14-18)</option>
             </select>
           </div>
           <div class="field">
-            <label>Mărime</label>
-            <select id="fSize"><option value="mic">Mică</option><option value="mediu" selected>Medie</option><option value="mare">Mare</option></select>
+            <label>Size</label>
+            <select id="fSize">
+              <option value="very_small">Very small</option>
+              <option value="small">Small</option>
+              <option value="medium" selected>Medium</option>
+              <option value="large">Large</option>
+              <option value="very_large">Very large</option>
+            </select>
           </div>
         </div>
 
-        <div class="field">
-          <label><input type="checkbox" id="fParasite" style="width:auto;"> Este parazit pe o altă specie</label>
-          <select id="fHost" style="display:none;margin-top:6px;"></select>
-        </div>
-
-        <button type="submit">Salvează specia</button>
+        <button type="submit">Save species</button>
       </form>
     </div>
   </div>
@@ -227,129 +222,161 @@
   <div id="passModal" class="modal hidden">
     <div class="card">
       <button class="closeBtn" data-close="pass">×</button>
-      <h2>Acces editor</h2>
-      <p style="font-size:13px;">Introdu parola ca să poți adăuga specii noi.</p>
-      <input type="password" id="passInput" placeholder="parolă">
-      <button id="passSubmit">Intră</button>
+      <h2>Editor access</h2>
+      <p style="font-size:13px;">Enter the password to add new species.</p>
+      <input type="password" id="passInput" placeholder="password">
+      <button id="passSubmit">Enter</button>
     </div>
   </div>
 </div>
 
 <script>
 /* ============================== CONFIG ============================== */
-const TILE = 32;                 // pixeli pe ecran per celulă de teren
-const WORLD_W = 100, WORLD_H = 70; // dimensiunea lumii în celule
-const EDITOR_PASSWORD = "padure123"; // schimbă asta dacă vrei altă parolă
+const TILE = 32;                    // on-screen pixels per world tile
+const WORLD_W = 260, WORLD_H = 170;  // world size in tiles (much bigger territory)
+const EDITOR_PASSWORD = "padure123"; // change this if you want a different password
 
-const ZONES = {
-  lakeA:{cx:20,cy:16,r:7},
-  lakeB:{cx:76,cy:50,r:5.5},
-  forest1:{x0:4,y0:30,x1:31,y1:66},
-  forest2:{x0:56,y0:4,x1:91,y1:29},
-  garden:{x0:36,y0:9,x1:56,y1:29},
-  dark:{x0:58,y0:54,x1:80,y1:68},
-  snow:{x0:83,y0:3,x1:99,y1:19},
-  storm:{x0:1,y0:48,x1:16,y1:65}
-};
+// Special zones and lakes are drawn as clusters of overlapping circles ("blobs")
+// instead of plain rectangles/circles, so their coastlines look natural/irregular.
+const LAKES = [
+  [{cx:42,cy:34,r:10},{cx:50,cy:38,r:7},{cx:36,cy:41,r:6}],
+  [{cx:150,cy:112,r:8},{cx:159,cy:106,r:6},{cx:145,cy:120,r:5}],
+  [{cx:70,cy:150,r:7},{cx:78,cy:155,r:9},{cx:86,cy:149,r:5}],
+  [{cx:205,cy:42,r:11},{cx:216,cy:48,r:7}],
+  [{cx:110,cy:95,r:5},{cx:116,cy:90,r:4}]
+];
+const FOREST_BLOBS = [
+  [{cx:22,cy:118,r:26},{cx:38,cy:138,r:22},{cx:16,cy:150,r:18},{cx:44,cy:110,r:16}],
+  [{cx:228,cy:22,r:24},{cx:244,cy:36,r:19},{cx:214,cy:12,r:14}],
+  [{cx:170,cy:150,r:20},{cx:185,cy:160,r:16}]
+];
+const GARDEN_BLOBS = [
+  [{cx:120,cy:38,r:17},{cx:135,cy:48,r:13},{cx:108,cy:50,r:11}]
+];
+const DARK_BLOBS  = [ [{cx:238,cy:132,r:15},{cx:250,cy:142,r:11},{cx:228,cy:145,r:10}] ];
+const SNOW_BLOBS  = [ [{cx:252,cy:14,r:17},{cx:238,cy:8,r:11},{cx:246,cy:26,r:9}] ];
+const STORM_BLOBS = [ [{cx:9,cy:150,r:15},{cx:20,cy:162,r:11},{cx:4,cy:165,r:8}] ];
+
+// River: a winding path that splits the map roughly in half; only crossable by swimming.
+const RIVER_BASE_X = WORLD_W*0.5;
 
 const HABITAT_TAGS = [
-  ["pamant","🌳 pe pământ / iarbă"],
-  ["apa_suprafata","🌊 la suprafața apei"],
-  ["apa_subapa","🐟 sub apă"],
-  ["apa_fund","⚓ pe fundul apei"],
-  ["aer","🕊️ zboară"],
-  ["vizuina","🕳️ sapă / stă în vizuină"],
-  ["static","🍃 stă agățat, nemișcat"],
-  ["intuneric","🌙 doar în zona întunecată"],
-  ["zapada","❄️ doar în zona cu zăpadă"],
-  ["agresiv","🦟 deranjează / mușcă personajul"]
+  ["land","🌳 on land / grass"],
+  ["water_surface","🌊 on the water surface"],
+  ["water_under","🐟 underwater"],
+  ["water_bottom","⚓ on the water bottom"],
+  ["air","🕊️ flies"],
+  ["burrow","🕳️ digs / lives in a burrow"],
+  ["clingy","🍃 clings, motionless"],
+  ["dark_zone","🌙 only in the dark zone"],
+  ["snow_zone","❄️ only in the snow zone"],
+  ["aggressive","🦟 bothers / bites the player"],
+  ["parasite_animal","🪱 parasite living on an animal"],
+  ["parasite_plant","🪱 parasite living on trees / crops"]
 ];
 
 const MOVE_STYLES = [
-  ["zbor_haotic","🦋 zbor haotic (fluture)"],
-  ["zbor_vibrant","🐝 zbor vibrant (albină)"],
-  ["zbor_lin","🕊️ zbor lin, plutitor"],
-  ["zbor_sacadat","🐦 zbor sacadat"],
-  ["zbor_inalt","🦅 zbor înalt, circular"],
-  ["zbor_liliac","🦇 zbor eratic (liliac)"],
-  ["inot_subapa","🐟 înot sub apă"],
-  ["inot_suprafata","🦆 înot la suprafață"],
-  ["mers_fund","🦀 mers pe fundul apei"],
-  ["mers_lin","🚶 mers lin"],
-  ["alergat","🏃 alergat"],
-  ["pas_leganat","🦌 pas legănat, apăsat"],
-  ["salt","🐸 salt (broască)"],
-  ["salt_exploziv","🦗 salt exploziv (greier/purice)"],
-  ["taret_unduit","🐍 târât unduit (șarpe)"],
-  ["taret_lent","🐛 târât lent (vierme/melc)"],
-  ["mers_paianjen","🕷️ mers pe multe picioare"],
-  ["sapat","⛏️ sapă / apare-dispare"],
-  ["agatat","🍃 agățat, nemișcat"],
-  ["palpaire","✨ pâlpâire pe loc (licurici)"],
-  ["plutire_valuri","🌊 plutire pasivă pe valuri"]
+  ["chaotic_flight","🦋 chaotic flight (butterfly)"],
+  ["buzzing_flight","🐝 buzzing flight (bee)"],
+  ["gliding_flight","🕊️ smooth, gliding flight"],
+  ["jerky_flight","🐦 jerky flight (small bird)"],
+  ["high_circling_flight","🦅 high, circling flight"],
+  ["erratic_bat_flight","🦇 erratic flight (bat)"],
+  ["underwater_swim","🐟 underwater swim"],
+  ["surface_swim","🦆 surface swim"],
+  ["bottom_walk","🦀 walks on the bottom"],
+  ["smooth_walk","🚶 smooth walk"],
+  ["running","🏃 running"],
+  ["heavy_gait","🦌 heavy, swaying gait"],
+  ["hop","🐸 hop (frog)"],
+  ["explosive_jump","🦗 explosive jump (cricket/flea)"],
+  ["slither","🐍 slithering (snake)"],
+  ["slow_crawl","🐛 slow crawl (worm/snail)"],
+  ["scuttle","🕷️ scuttles on many legs"],
+  ["burrow_peek","⛏️ underground dweller — pops up, then disappears (worm, mole)"],
+  ["den_dweller","🕳️ sits at its den entrance (frog, spider — doesn't disappear)"],
+  ["clinging","🍃 clings, motionless"],
+  ["glow_pulse","✨ pulsing glow (firefly)"],
+  ["drift_on_waves","🌊 drifts passively on the waves"]
 ];
 
+// speed = tiles/second while travelling. mode drives the behaviour engine below.
 const STYLE_PARAMS = {
-  zbor_haotic:{radius:3,interval:1.2,mode:"flutter"},
-  zbor_vibrant:{radius:2.2,interval:.8,mode:"flutter"},
-  zbor_lin:{radius:4,interval:3.5,mode:"lerp"},
-  zbor_sacadat:{radius:2.5,interval:1,mode:"hop"},
-  zbor_inalt:{radius:4.5,interval:6,mode:"circle"},
-  zbor_liliac:{radius:3,interval:1,mode:"flutter"},
-  inot_subapa:{radius:2.5,interval:3,mode:"lerp"},
-  inot_suprafata:{radius:2,interval:3.5,mode:"lerp"},
-  mers_fund:{radius:1.2,interval:2.5,mode:"hop"},
-  mers_lin:{radius:2,interval:4,mode:"lerp"},
-  alergat:{radius:3,interval:1.5,mode:"lerp"},
-  pas_leganat:{radius:1.8,interval:4.5,mode:"lerp"},
-  salt:{radius:1.5,interval:1.8,mode:"hop"},
-  salt_exploziv:{radius:2.6,interval:1.3,mode:"hop"},
-  taret_unduit:{radius:1.3,interval:5,mode:"lerp"},
-  taret_lent:{radius:.5,interval:8,mode:"lerp"},
-  mers_paianjen:{radius:1.5,interval:1,mode:"hop"},
-  sapat:{radius:.3,interval:9,mode:"peek"},
-  agatat:{radius:.1,interval:9999,mode:"static"},
-  palpaire:{radius:.2,interval:9999,mode:"pulse"},
-  plutire_valuri:{radius:1.2,interval:5,mode:"lerp"}
+  chaotic_flight:{mode:"glide",speed:2.3,jitterAmp:.35,jitterFreq:6,hop:false,pause:.3},
+  buzzing_flight:{mode:"glide",speed:3.0,jitterAmp:.25,jitterFreq:10,hop:false,pause:.2},
+  gliding_flight:{mode:"glide",speed:2.6,jitterAmp:.05,jitterFreq:1,hop:false,pause:1.5},
+  jerky_flight:{mode:"glide",speed:2.4,jitterAmp:.1,jitterFreq:2,hop:true,pause:.6},
+  high_circling_flight:{mode:"circle",speed:1.0,radius:10,driftEvery:22},
+  erratic_bat_flight:{mode:"glide",speed:2.8,jitterAmp:.4,jitterFreq:8,hop:false,pause:.2},
+  underwater_swim:{mode:"glide",speed:1.8,jitterAmp:.05,jitterFreq:1,hop:false,pause:.8},
+  surface_swim:{mode:"glide",speed:1.3,jitterAmp:.05,jitterFreq:1,hop:false,pause:1.0},
+  bottom_walk:{mode:"glide",speed:.7,jitterAmp:0,jitterFreq:0,hop:true,pause:1.2},
+  smooth_walk:{mode:"glide",speed:1.4,jitterAmp:0,jitterFreq:0,hop:false,pause:1.0},
+  running:{mode:"glide",speed:3.2,jitterAmp:0,jitterFreq:0,hop:false,pause:.6},
+  heavy_gait:{mode:"glide",speed:1.0,jitterAmp:0,jitterFreq:0,hop:false,pause:1.5},
+  hop:{mode:"glide",speed:1.6,jitterAmp:0,jitterFreq:0,hop:true,pause:.9},
+  explosive_jump:{mode:"glide",speed:2.4,jitterAmp:0,jitterFreq:0,hop:true,pause:.7},
+  slither:{mode:"glide",speed:1.1,jitterAmp:.05,jitterFreq:2,hop:false,pause:1.0},
+  slow_crawl:{mode:"glide",speed:.3,jitterAmp:0,jitterFreq:0,hop:false,pause:2.0},
+  scuttle:{mode:"glide",speed:1.8,jitterAmp:0,jitterFreq:0,hop:true,pause:.3},
+  burrow_peek:{mode:"peek",interval:7,showFrac:.16},
+  den_dweller:{mode:"peek",interval:26,showFrac:.85},
+  clinging:{mode:"static"},
+  glow_pulse:{mode:"pulse"},
+  drift_on_waves:{mode:"glide",speed:.4,jitterAmp:.15,jitterFreq:.5,hop:false,pause:2.5}
 };
 
-const RARITY_COUNTS = { foarte_rar:[1,1], rar:[2,3], comun:[5,7], foarte_comun:[10,14] };
-const SIZE_SCALE = { mic:.75, mediu:1, mare:1.45 };
-const BUG_MESSAGES = ["Auu, te-a înțepat!","Bâzzz... a aterizat pe tine!","O căpușă curioasă s-a agățat de tine!","Ai fost \"vizitat\" de un țânțar!","Nu pare mulțumită că ai trecut pe-acolo!"];
+// Smaller populations per rarity tier — the map is bigger than before but not enormous.
+const RARITY_COUNTS = { very_rare:[1,3], rare:[3,5], common:[7,10], very_common:[14,18] };
+const SIZE_SCALE = { very_small:.5, small:.75, medium:1, large:1.4, very_large:1.9 };
+const BUG_MESSAGES = ["Ouch, it stung you!","Bzzz... it landed on you!","A curious tick latched onto you!","You've been \"visited\" by a mosquito!","It doesn't seem happy you walked by!"];
 
 const PALETTE_COLORS = ["#1a2a1c","#3e2d22","#5c4433","#7a5c3e","#4c7f4a","#5f9a58","#8fbf6a",
   "#2f6f8f","#6ab3cf","#d9c589","#e8a33d","#b6473f","#f3ecd6","#ffffff","#000000","#7a4fa0"];
 
 /* ============================== UTIL / RNG ============================== */
-function mulberry32(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);
-  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function hash2(a,b){const s=Math.sin(a*127.1+b*311.7)*43758.5453;return s-Math.floor(s);}
 function smoothstep(t){return t*t*(3-2*t);}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function uid(){return "s_"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function dist(x1,y1,x2,y2){return Math.hypot(x1-x2,y1-y2);}
 
 /* ============================== WORLD GENERATION ============================== */
 const terrain = new Array(WORLD_H);
 const reeds = new Array(WORLD_H);
 for(let y=0;y<WORLD_H;y++){terrain[y]=new Array(WORLD_W).fill("grass");reeds[y]=new Array(WORLD_W).fill(false);}
 
-function inRect(x,y,r){return x>=r.x0&&x<=r.x1&&y>=r.y0&&y<=r.y1;}
-function inCircle(x,y,c){const dx=x-c.cx,dy=y-c.cy;return dx*dx+dy*dy<=c.r*c.r;}
-function isWaterTile(x,y){return terrain[y]&&terrain[y][x]==="water";}
+function inBlob(x,y,blob){
+  for(let i=0;i<blob.length;i++){ const c=blob[i]; const dx=x-c.cx,dy=y-c.cy; if(dx*dx+dy*dy<=c.r*c.r) return true; }
+  return false;
+}
+function inAnyBlob(x,y,blobs){ for(let i=0;i<blobs.length;i++) if(inBlob(x,y,blobs[i])) return true; return false; }
+function isWaterTile(x,y){ return terrain[y] && terrain[y][x]==="water"; }
+
+// river centerline: smooth random walk down the map, with varying width
+const riverSeed = 91.7;
+function riverCenterX(y){
+  let x = RIVER_BASE_X;
+  x += Math.sin(y*0.045+riverSeed)*22;
+  x += Math.sin(y*0.013+riverSeed*2)*14;
+  x += (hash2(y*0.7,riverSeed)-0.5)*6;
+  return x;
+}
+function riverWidth(y){ return 4 + Math.abs(Math.sin(y*0.05+3))*5 + Math.abs(Math.sin(y*0.017))*3; }
+function isRiver(x,y){
+  const cx = riverCenterX(y);
+  return Math.abs(x-cx) < riverWidth(y)/2;
+}
 
 (function generateWorld(){
   for(let y=0;y<WORLD_H;y++){
     for(let x=0;x<WORLD_W;x++){
-      if(inCircle(x,y,ZONES.lakeA)||inCircle(x,y,ZONES.lakeB)){terrain[y][x]="water";continue;}
-      if(inRect(x,y,ZONES.forest1)||inRect(x,y,ZONES.forest2)){
-        terrain[y][x]= hash2(x,y)<0.5 ? "forest" : "grass";
-        continue;
-      }
-      if(inRect(x,y,ZONES.garden)){terrain[y][x]="garden";continue;}
+      if(isRiver(x,y) || inAnyBlob(x,y,LAKES)){ terrain[y][x]="water"; continue; }
+      if(inAnyBlob(x,y,FOREST_BLOBS)){ terrain[y][x] = hash2(x,y)<0.55 ? "forest" : "grass"; continue; }
+      if(inAnyBlob(x,y,GARDEN_BLOBS)){ terrain[y][x]="garden"; continue; }
       terrain[y][x]="grass";
     }
   }
-  // reeds around water edges
   for(let y=0;y<WORLD_H;y++)for(let x=0;x<WORLD_W;x++){
     if(terrain[y][x]!=="water"){
       let nearWater=false;
@@ -362,43 +389,102 @@ function isWaterTile(x,y){return terrain[y]&&terrain[y][x]==="water";}
   }
 })();
 
-function isDark(x,y){return inRect(x,y,ZONES.dark);}
-function isSnow(x,y){return inRect(x,y,ZONES.snow);}
-function isStorm(x,y){return inRect(x,y,ZONES.storm);}
+function isDark(x,y){ return inAnyBlob(x,y,DARK_BLOBS); }
+function isSnow(x,y){ return inAnyBlob(x,y,SNOW_BLOBS); }
+function isStorm(x,y){ return inAnyBlob(x,y,STORM_BLOBS); }
 
-// precompute candidate tile pools for species placement
-const pools = {land:[],water:[],boundary:[],dark:[],snow:[]};
+/* connected-component flood fill, so animals roam their own landmass / water body
+   and never cross the river or jump between separate ponds */
+function floodFillComponents(matchFn){
+  const compId = new Int32Array(WORLD_W*WORLD_H).fill(-1);
+  const comps = [];
+  const idx=(x,y)=>y*WORLD_W+x;
+  for(let y0=0;y0<WORLD_H;y0++){
+    for(let x0=0;x0<WORLD_W;x0++){
+      if(compId[idx(x0,y0)]!==-1 || !matchFn(x0,y0)) continue;
+      const id = comps.length; const tiles=[];
+      const queue=[[x0,y0]]; compId[idx(x0,y0)]=id;
+      while(queue.length){
+        const [x,y]=queue.pop(); tiles.push({x,y});
+        const nbrs=[[x+1,y],[x-1,y],[x,y+1],[x,y-1]];
+        for(const [nx,ny] of nbrs){
+          if(nx<0||ny<0||nx>=WORLD_W||ny>=WORLD_H) continue;
+          if(compId[idx(nx,ny)]!==-1) continue;
+          if(!matchFn(nx,ny)) continue;
+          compId[idx(nx,ny)]=id; queue.push([nx,ny]);
+        }
+      }
+      comps.push(tiles);
+    }
+  }
+  return {compId, comps};
+}
+const landFF = floodFillComponents((x,y)=>terrain[y][x]!=="water");
+const waterFF = floodFillComponents((x,y)=>terrain[y][x]==="water");
+function landComponentAt(x,y){ const id = landFF.compId[y*WORLD_W+x]; return id===-1?null:landFF.comps[id]; }
+function waterComponentAt(x,y){ const id = waterFF.compId[y*WORLD_W+x]; return id===-1?null:waterFF.comps[id]; }
+function findAdjacentMatching(x,y,matchFn){
+  const nbrs=[[x+1,y],[x-1,y],[x,y+1],[x,y-1],[x+1,y+1],[x-1,y-1],[x+1,y-1],[x-1,y+1]];
+  for(const [nx,ny] of nbrs){ if(nx>=0&&ny>=0&&nx<WORLD_W&&ny<WORLD_H&&matchFn(nx,ny)) return {x:nx,y:ny}; }
+  return null;
+}
+
+// global pools used for INITIAL placement of new species (anywhere matching habitat)
+const pools = {land:[],water:[],boundary:[],dark:[],snow:[],vegetation:[]};
 for(let y=1;y<WORLD_H-1;y++)for(let x=1;x<WORLD_W-1;x++){
   const t=terrain[y][x];
   if(t==="water"){
     pools.water.push({x,y});
-    let landAdj=false;
-    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){ if(terrain[y+dy][x+dx]!=="water") landAdj=true; }
-    if(landAdj) pools.boundary.push({x,y});
+    if(findAdjacentMatching(x,y,(nx,ny)=>terrain[ny][nx]!=="water")) pools.boundary.push({x,y});
   } else {
     pools.land.push({x,y});
-    let waterAdj=false;
-    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){ if(terrain[y+dy][x+dx]==="water") waterAdj=true; }
-    if(waterAdj) pools.boundary.push({x,y});
+    if(findAdjacentMatching(x,y,(nx,ny)=>terrain[ny][nx]==="water")) pools.boundary.push({x,y});
   }
+  if(t==="forest"||t==="garden") pools.vegetation.push({x,y});
   if(isDark(x,y)) pools.dark.push({x,y});
   if(isSnow(x,y)) pools.snow.push({x,y});
 }
 
-function pickCandidatePool(tags){
-  const hasWater = tags.some(t=>t.startsWith("apa_"));
-  const hasLand = tags.includes("pamant")||tags.includes("vizuina")||tags.includes("static");
-  const hasAir = tags.includes("aer");
-  if(tags.includes("intuneric") && pools.dark.length) return pools.dark;
-  if(tags.includes("zapada") && pools.snow.length) return pools.snow;
+function pickHabitatPool(tags){
+  const hasWater = tags.some(t=>t.startsWith("water_"));
+  const hasLand = tags.includes("land")||tags.includes("burrow")||tags.includes("clingy");
+  const hasAir = tags.includes("air");
+  if(tags.includes("dark_zone") && pools.dark.length) return pools.dark;
+  if(tags.includes("snow_zone") && pools.snow.length) return pools.snow;
+  if(tags.includes("parasite_plant") && pools.vegetation.length) return pools.vegetation;
   if(hasWater && hasLand) return pools.boundary.length?pools.boundary:pools.land;
   if(hasWater) return pools.water;
   if(hasAir && !hasLand) return pools.land.concat(pools.boundary);
   return pools.land;
 }
 
+// LOCAL region used for ongoing roaming (so an animal stays on its own landmass/pond)
+function pickRandomTile(list){ return list[Math.floor(Math.random()*list.length)]; }
+function regionForInstance(tags, homeX, homeY){
+  if(tags.includes("dark_zone") && pools.dark.length) return pools.dark;
+  if(tags.includes("snow_zone") && pools.snow.length) return pools.snow;
+  const hasWater = tags.some(t=>t.startsWith("water_"));
+  const hasLand = tags.includes("land")||tags.includes("burrow")||tags.includes("clingy");
+  const hasAir = tags.includes("air");
+  if(hasWater && hasLand){
+    const onWater = terrain[homeY][homeX]==="water";
+    let waterTiles=[], landTiles=[];
+    if(onWater){ waterTiles = waterComponentAt(homeX,homeY)||pools.water;
+      const adj = findAdjacentMatching(homeX,homeY,(nx,ny)=>terrain[ny][nx]!=="water");
+      landTiles = adj ? (landComponentAt(adj.x,adj.y)||[]) : [];
+    } else { landTiles = landComponentAt(homeX,homeY)||pools.land;
+      const adj = findAdjacentMatching(homeX,homeY,(nx,ny)=>terrain[ny][nx]==="water");
+      waterTiles = adj ? (waterComponentAt(adj.x,adj.y)||[]) : [];
+    }
+    return landTiles.concat(waterTiles);
+  }
+  if(hasWater) return waterComponentAt(homeX,homeY) || pools.water;
+  if(hasAir && !hasLand) return null; // null => roam the whole world freely (pure fliers)
+  return landComponentAt(homeX,homeY) || pools.land;
+}
+
 /* ============================== STORAGE / SPECIES ============================== */
-let species = {};      // id -> species object (runtime, includes offscreen icon canvas)
+let species = {};      // id -> species object (runtime, includes offscreen icon canvas + _runtime)
 let editorUnlocked = false;
 
 // Storage abstraction: uses Claude's window.storage when available (inside claude.ai),
@@ -435,6 +521,7 @@ async function loadAllSpecies(){
         if(r && r.value){
           const sp = JSON.parse(r.value);
           sp._iconCanvas = buildIconCanvas(sp.icon);
+          initRuntime(sp);
           species[sp.id] = sp;
         }
       }catch(e){/* skip broken entry */}
@@ -446,7 +533,7 @@ async function loadAllSpecies(){
 
 async function saveSpeciesToStorage(sp){
   const clone = Object.assign({}, sp);
-  delete clone._iconCanvas;
+  delete clone._iconCanvas; delete clone._runtime;
   await storageSet("species:"+sp.id, JSON.stringify(clone));
 }
 
@@ -470,21 +557,38 @@ function buildIconCanvas(iconData){
 /* placement: compute instance homes for a species given its tags/rarity */
 function placeSpecies(sp){
   if(sp.isParasite){ sp.instances = []; return; } // rendered relative to host, no own homes
-  const pool = pickCandidatePool(sp.habitatTags);
+  const pool = pickHabitatPool(sp.habitatTags);
   if(!pool.length){ sp.instances=[]; return; }
-  const [minC,maxC] = RARITY_COUNTS[sp.rarity] || RARITY_COUNTS.comun;
+  const [minC,maxC] = RARITY_COUNTS[sp.rarity] || RARITY_COUNTS.common;
   const count = minC + Math.floor(Math.random()*(maxC-minC+1));
   const instances = [];
   for(let i=0;i<count;i++){
-    const tile = pool[Math.floor(Math.random()*pool.length)];
+    const tile = pickRandomTile(pool);
     const jitterX = (Math.random()-0.5)*0.6, jitterY=(Math.random()-0.5)*0.6;
     instances.push({x:tile.x+0.5+jitterX, y:tile.y+0.5+jitterY, seed:Math.random()*1000});
   }
   sp.instances = instances;
 }
 
+/* runtime (non-persisted) movement state, rebuilt every time a species is loaded/placed */
+function initRuntime(sp){
+  sp._runtime = [];
+  if(sp.isParasite || !sp.instances) return;
+  for(const inst of sp.instances){
+    const hx = Math.floor(inst.x), hy = Math.floor(inst.y);
+    const region = regionForInstance(sp.habitatTags||[], clamp(hx,0,WORLD_W-1), clamp(hy,0,WORLD_H-1));
+    sp._runtime.push({
+      x:inst.x, y:inst.y, homeX:inst.x, homeY:inst.y, seed:inst.seed, region,
+      state:"paused", pauseUntil:0, legStartX:inst.x, legStartY:inst.y, legTargetX:inst.x, legTargetY:inst.y,
+      legStart:0, legDuration:1, cycleStart:0, spotX:inst.x, spotY:inst.y,
+      centerX:inst.x, centerY:inst.y, lastDrift:0, angleSeed:Math.random()*Math.PI*2,
+      currentStyle:(sp.movementStyles&&sp.movementStyles[0])||"smooth_walk", styleSwitchAt:5+Math.random()*10
+    });
+  }
+}
+
 /* ============================== PLAYER ============================== */
-const player = { x: 22, y: 10, speed: 4.6, swimSpeed: 3.0, facing:1, swimming:false, vx:0, vy:0 };
+const player = { x: WORLD_W*0.22, y: WORLD_H*0.18, speed: 6.2, swimSpeed: 3.6, facing:1, swimming:false };
 const keys = {};
 window.addEventListener("keydown", e=>{
   if(isTypingTarget(e.target)) return;
@@ -511,41 +615,112 @@ function updatePlayer(dt){
   }
 }
 
-/* ============================== ANIMAL POSITION LOGIC ============================== */
-function computeInstancePos(sp, inst, t){
-  if(sp.type==="planta") return {x:inst.x, y:inst.y, visible:true, alpha:1, glow:false};
-  const styleKey = (sp.movementStyles && sp.movementStyles[0]) || "mers_lin";
-  const params = STYLE_PARAMS[styleKey] || STYLE_PARAMS.mers_lin;
-  const seed = inst.seed;
-  let dx=0, dy=0, visible=true, alpha=1, glow=false;
+/* ============================== ANIMAL MOVEMENT ENGINE ============================== */
+// Animals roam freely across their whole valid territory (their landmass, their pond,
+// the sky, etc.) using multi-leg wandering instead of small fixed-radius circling.
+function pickNewLeg(rt, t){
+  let target;
+  if(rt.region===null){ // pure flier: anywhere in the world
+    target = { x: 1+Math.random()*(WORLD_W-2), y: 1+Math.random()*(WORLD_H-2) };
+  } else if(rt.region.length){
+    const tile = pickRandomTile(rt.region);
+    target = { x: tile.x+0.5+(Math.random()-0.5)*0.7, y: tile.y+0.5+(Math.random()-0.5)*0.7 };
+  } else { target = {x:rt.x, y:rt.y}; }
+  rt.legStartX = rt.x; rt.legStartY = rt.y;
+  rt.legTargetX = target.x; rt.legTargetY = target.y;
+  rt.legStart = t;
+}
 
-  if(params.mode==="static"){ /* no movement */ }
-  else if(params.mode==="peek"){
-    const frac = ((t/params.interval + seed) % 1 + 1) % 1;
-    visible = frac < 0.12;
+// If a species has more than one movement style checked (e.g. a swan that both
+// "swims at the surface" and "flies"), it periodically switches which one is active,
+// so the same animal is seen doing both things over time instead of only the first pick.
+function pickActiveStyle(sp, rt, t){
+  const styles = sp.movementStyles;
+  if(!styles || styles.length<=1) return (styles&&styles[0]) || "smooth_walk";
+  if(t >= rt.styleSwitchAt){
+    let next = styles[Math.floor(Math.random()*styles.length)];
+    if(next===rt.currentStyle) next = styles[(styles.indexOf(next)+1)%styles.length];
+    if(next!==rt.currentStyle){
+      rt.currentStyle = next;
+      // clean handoff between engines so the switch doesn't jump or glitch
+      rt.state="paused"; rt.pauseUntil=t;
+      rt.cycleStart=t;
+      rt.lastDrift = t-99999;
+    }
+    rt.styleSwitchAt = t + 8 + Math.random()*14;
+  }
+  return rt.currentStyle;
+}
+
+function updateInstance(sp, rt, t){
+  const styleKey = pickActiveStyle(sp, rt, t);
+  const params = STYLE_PARAMS[styleKey] || STYLE_PARAMS.smooth_walk;
+  let px=rt.x, py=rt.y, visible=true, alpha=1, glow=false;
+
+  if(params.mode==="static"){
+    px = rt.homeX + Math.sin(t*0.3+rt.seed)*0.06;
+    py = rt.homeY + Math.cos(t*0.25+rt.seed)*0.04;
   }
   else if(params.mode==="pulse"){
-    alpha = 0.35 + 0.65*Math.abs(Math.sin(t*2.2 + seed*10));
-    dx = Math.sin(t*0.5+seed)*0.4; dy = Math.cos(t*0.4+seed)*0.2;
+    alpha = 0.35 + 0.65*Math.abs(Math.sin(t*2.2+rt.seed*10));
+    px = rt.homeX + Math.sin(t*0.5+rt.seed)*0.4;
+    py = rt.homeY + Math.cos(t*0.4+rt.seed)*0.2;
     glow = true;
   }
+  else if(params.mode==="peek"){
+    if(t - rt.cycleStart > params.interval){
+      const region = rt.region;
+      const tile = region===null ? {x:rt.homeX,y:rt.homeY} : (region && region.length ? pickRandomTile(region) : {x:rt.homeX,y:rt.homeY});
+      rt.spotX = tile.x+0.5+(Math.random()-0.5)*0.5; rt.spotY = tile.y+0.5+(Math.random()-0.5)*0.5;
+      rt.cycleStart = t;
+    }
+    const frac = (t-rt.cycleStart)/params.interval;
+    visible = frac < params.showFrac;
+    px = rt.spotX; py = rt.spotY;
+  }
   else if(params.mode==="circle"){
-    dx = Math.cos(t*0.3+seed*6)*params.radius;
-    dy = Math.sin(t*0.3+seed*6)*params.radius*0.5;
+    if(t - rt.lastDrift > params.driftEvery){
+      const region = rt.region;
+      if(region===null){ rt.centerX = 1+Math.random()*(WORLD_W-2); rt.centerY = 1+Math.random()*(WORLD_H-2); }
+      else if(region.length){ const tile = pickRandomTile(region); rt.centerX = tile.x+0.5; rt.centerY = tile.y+0.5; }
+      rt.lastDrift = t;
+    }
+    const angSpeed = params.speed/Math.max(1,params.radius);
+    px = rt.centerX + Math.cos(t*angSpeed+rt.angleSeed)*params.radius;
+    py = rt.centerY + Math.sin(t*angSpeed+rt.angleSeed)*params.radius*0.55;
   }
-  else {
-    const idx = Math.floor(t/params.interval + seed*7);
-    const progRaw = ((t/params.interval + seed*7) % 1 + 1) % 1;
-    const angleA = hash2(idx,seed)*Math.PI*2, angleB = hash2(idx+1,seed)*Math.PI*2;
-    const rA = hash2(idx,seed+1)*params.radius, rB = hash2(idx+1,seed+1)*params.radius;
-    const ax=Math.cos(angleA)*rA, ay=Math.sin(angleA)*rA*0.6;
-    const bx=Math.cos(angleB)*rB, by=Math.sin(angleB)*rB*0.6;
-    const prog = params.mode==="hop" ? Math.pow(progRaw,0.4) : smoothstep(progRaw);
-    dx = ax+(bx-ax)*prog; dy = ay+(by-ay)*prog;
-    if(params.mode==="hop") dy -= Math.sin(progRaw*Math.PI)*0.3;
-    if(params.mode==="flutter"){ dx += Math.sin(t*9+seed*13)*0.15; dy += Math.cos(t*7+seed*17)*0.15; }
+  else { // "glide" - the main roaming engine
+    if(rt.state==="paused"){
+      if(t >= rt.pauseUntil){ pickNewLeg(rt,t);
+        const d = dist(rt.legStartX,rt.legStartY,rt.legTargetX,rt.legTargetY);
+        rt.legDuration = Math.max(0.5, d/params.speed);
+        rt.state="moving";
+      }
+    }
+    if(rt.state==="moving"){
+      const progress = clamp((t-rt.legStart)/rt.legDuration,0,1);
+      const sm = smoothstep(progress);
+      rt.x = rt.legStartX+(rt.legTargetX-rt.legStartX)*sm;
+      rt.y = rt.legStartY+(rt.legTargetY-rt.legStartY)*sm;
+      px = rt.x; py = rt.y;
+      if(params.hop) py -= Math.sin(progress*Math.PI)*0.22;
+      if(progress>=1){
+        rt.x = rt.legTargetX; rt.y = rt.legTargetY;
+        rt.state="paused"; rt.pauseUntil = t + params.pause*(0.5+Math.random()*0.9);
+      }
+    } else { px = rt.x; py = rt.y; }
+    if(params.jitterAmp){
+      px += Math.sin(t*params.jitterFreq+rt.seed*7)*params.jitterAmp;
+      py += Math.cos(t*params.jitterFreq*0.8+rt.seed*5)*params.jitterAmp*0.6;
+    }
   }
-  return {x:inst.x+dx, y:inst.y+dy, visible, alpha, glow};
+  rt.x = px; rt.y = py; // keep last displayed position in sync so switching styles hands off smoothly
+  const showHole = params.mode==="peek";
+  return {x:px, y:py, visible, alpha, glow, showHole, holeX:rt.spotX, holeY:rt.spotY};
+}
+
+function computeInstancePos(sp, inst, rt, t){
+  return updateInstance(sp, rt, t);
 }
 
 /* ============================== RENDERING ============================== */
@@ -581,6 +756,85 @@ function updateCamera(){
   camY = clamp(player.y*TILE - canvas.height/2, 0, Math.max(0,WORLD_H*TILE-canvas.height));
 }
 
+/* ---- diversified flora decoration (procedural, not species) ---- */
+function drawTrunk(cx, topY, h, w){
+  ctx.fillStyle="#4a3524"; ctx.fillRect(cx-w/2, topY, w, h);
+}
+function drawBush(cx, cy, r, col){
+  ctx.fillStyle = col;
+  ctx.beginPath(); ctx.arc(cx-r*0.4, cy, r*0.6, 0, Math.PI*2);
+  ctx.arc(cx+r*0.4, cy, r*0.6, 0, Math.PI*2);
+  ctx.arc(cx, cy-r*0.3, r*0.65, 0, Math.PI*2);
+  ctx.fill();
+}
+function drawForestDecor(x,y,sx,sy){
+  const h = hash2(x*1.3,y*1.7);
+  const cx = sx+TILE*0.5, groundY = sy+TILE*0.86;
+  if(h<0.24){ // pine
+    drawTrunk(cx, groundY-TILE*0.12, TILE*0.16, TILE*0.09);
+    ctx.fillStyle = shadeColor("#274d2a", hash2(x,y)*0.1-0.05);
+    for(let i=0;i<3;i++){
+      const w = TILE*(0.42-i*0.1), yy = groundY-TILE*0.12-i*TILE*0.18;
+      ctx.beginPath(); ctx.moveTo(cx-w/2, yy); ctx.lineTo(cx+w/2, yy); ctx.lineTo(cx, yy-TILE*0.22); ctx.closePath(); ctx.fill();
+    }
+  } else if(h<0.46){ // oak
+    drawTrunk(cx, groundY-TILE*0.16, TILE*0.2, TILE*0.1);
+    ctx.fillStyle = shadeColor("#3f6e3d", hash2(x,y)*0.15-0.07);
+    ctx.beginPath(); ctx.arc(cx, groundY-TILE*0.42, TILE*0.32, 0, Math.PI*2); ctx.fill();
+  } else if(h<0.58){ // apple tree
+    drawTrunk(cx, groundY-TILE*0.14, TILE*0.18, TILE*0.09);
+    ctx.fillStyle = "#4c7f4a";
+    ctx.beginPath(); ctx.arc(cx, groundY-TILE*0.4, TILE*0.28, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle="#b6473f";
+    for(let i=0;i<4;i++){ const a=i*1.7+h*6; ctx.beginPath(); ctx.arc(cx+Math.cos(a)*TILE*0.18, groundY-TILE*0.4+Math.sin(a)*TILE*0.16, TILE*0.035,0,Math.PI*2); ctx.fill(); }
+  } else if(h<0.68){ // pear tree
+    drawTrunk(cx, groundY-TILE*0.14, TILE*0.18, TILE*0.09);
+    ctx.fillStyle = "#5f9a58";
+    ctx.beginPath(); ctx.arc(cx, groundY-TILE*0.4, TILE*0.27, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle="#d9c589";
+    for(let i=0;i<4;i++){ const a=i*1.9+h*5; ctx.beginPath(); ctx.arc(cx+Math.cos(a)*TILE*0.17, groundY-TILE*0.4+Math.sin(a)*TILE*0.15, TILE*0.035,0,Math.PI*2); ctx.fill(); }
+  } else if(h<0.76){ // plum tree
+    drawTrunk(cx, groundY-TILE*0.14, TILE*0.18, TILE*0.09);
+    ctx.fillStyle = "#3f6e3d";
+    ctx.beginPath(); ctx.arc(cx, groundY-TILE*0.4, TILE*0.27, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle="#7a4fa0";
+    for(let i=0;i<5;i++){ const a=i*1.5+h*7; ctx.beginPath(); ctx.arc(cx+Math.cos(a)*TILE*0.17, groundY-TILE*0.4+Math.sin(a)*TILE*0.15, TILE*0.03,0,Math.PI*2); ctx.fill(); }
+  } else if(h<0.88){ // walnut tree (bigger)
+    drawTrunk(cx, groundY-TILE*0.2, TILE*0.24, TILE*0.12);
+    ctx.fillStyle = shadeColor("#3f6e3d",-0.08);
+    ctx.beginPath(); ctx.arc(cx, groundY-TILE*0.48, TILE*0.36, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle="#5c4433";
+    for(let i=0;i<5;i++){ const a=i*1.4+h*4; ctx.beginPath(); ctx.arc(cx+Math.cos(a)*TILE*0.2, groundY-TILE*0.48+Math.sin(a)*TILE*0.18, TILE*0.03,0,Math.PI*2); ctx.fill(); }
+  } else { // bush
+    drawBush(cx, groundY-TILE*0.1, TILE*0.22, shadeColor("#4c7f4a", h*0.2-0.1));
+  }
+}
+function drawGardenDecor(x,y,sx,sy){
+  const h = hash2(x*2.2,y*2.6);
+  const cx = sx+TILE*0.5, cy = sy+TILE*0.55;
+  if(h<0.28){ // potatoes: leafy clump + small white flowers
+    ctx.fillStyle="#4c7f4a";
+    ctx.beginPath(); ctx.arc(cx, cy, TILE*0.2, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle="#f3ecd6";
+    for(let i=0;i<3;i++){ const a=i*2.1+h*6; ctx.beginPath(); ctx.arc(cx+Math.cos(a)*TILE*0.12, cy+Math.sin(a)*TILE*0.1, TILE*0.025,0,Math.PI*2); ctx.fill(); }
+  } else if(h<0.53){ // cabbage: pale round head with ring shading
+    ctx.fillStyle="#8fbf6a";
+    ctx.beginPath(); ctx.arc(cx, cy, TILE*0.2, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle="#5f9a58"; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(cx, cy, TILE*0.12, 0, Math.PI*2); ctx.stroke();
+  } else if(h<0.75){ // grapevine row: a lattice line with purple clusters
+    ctx.strokeStyle="#5c4433"; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(sx, sy+TILE*0.3); ctx.lineTo(sx+TILE, sy+TILE*0.3); ctx.stroke();
+    ctx.strokeStyle="#4c7f4a"; ctx.lineWidth=1.5;
+    for(let i=0;i<3;i++){ const px=sx+TILE*(0.2+i*0.3); ctx.beginPath(); ctx.moveTo(px,sy+TILE*0.3); ctx.lineTo(px,sy+TILE*0.75); ctx.stroke(); }
+    ctx.fillStyle="#7a4fa0";
+    for(let i=0;i<3;i++){ const px=sx+TILE*(0.2+i*0.3); ctx.beginPath(); ctx.arc(px, sy+TILE*0.6, TILE*0.05,0,Math.PI*2); ctx.fill(); }
+  } else { // flowers
+    ctx.fillStyle = ["#e8a33d","#b6473f","#f3ecd6","#7a4fa0"][Math.floor(hash2(x,y*3)*4)];
+    ctx.beginPath(); ctx.arc(cx, cy, TILE*0.09, 0, Math.PI*2); ctx.fill();
+  }
+}
+
 function drawTerrain(){
   const startX = Math.max(0, Math.floor(camX/TILE));
   const startY = Math.max(0, Math.floor(camY/TILE));
@@ -593,13 +847,11 @@ function drawTerrain(){
       ctx.fillRect(sx,sy,TILE,TILE);
       const t = terrain[y][x];
       if(t==="forest"){
-        ctx.fillStyle = shadeColor("#2e4a26", hash2(x,y)*0.15-0.07);
-        const r = TILE*0.32;
-        ctx.beginPath(); ctx.arc(sx+TILE*0.5, sy+TILE*0.42, r, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#5c4433"; ctx.fillRect(sx+TILE*0.46, sy+TILE*0.6, TILE*0.08, TILE*0.35);
-      } else if(t==="garden" && hash2(x*2,y*2)<0.3){
-        ctx.fillStyle = ["#e8a33d","#b6473f","#f3ecd6","#7a4fa0"][Math.floor(hash2(x,y*3)*4)];
-        ctx.beginPath(); ctx.arc(sx+TILE*0.5, sy+TILE*0.5, TILE*0.09, 0, Math.PI*2); ctx.fill();
+        drawForestDecor(x,y,sx,sy);
+      } else if(t==="garden"){
+        drawGardenDecor(x,y,sx,sy);
+      } else if(t==="grass" && hash2(x*4.1,y*4.3)<0.05){
+        drawBush(sx+TILE*0.5, sy+TILE*0.62, TILE*0.16, shadeColor("#4c7f4a",-0.15));
       } else if(reeds[y][x]){
         ctx.strokeStyle="#3f6e3d"; ctx.lineWidth=2;
         for(let i=0;i<3;i++){
@@ -629,11 +881,46 @@ function drawIcon(sp, wx, wy, scale, alpha, glow){
   ctx.restore();
 }
 
+function drawHole(wx,wy,scale){
+  const sx = wx*TILE-camX, sy = wy*TILE-camY+TILE*0.16*scale;
+  ctx.save();
+  ctx.fillStyle="rgba(20,14,10,0.8)";
+  ctx.beginPath(); ctx.ellipse(sx,sy, TILE*0.30*scale, TILE*0.15*scale, 0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle="rgba(70,48,30,0.9)"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.ellipse(sx,sy, TILE*0.30*scale, TILE*0.15*scale, 0,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle="#5c4433";
+  ctx.beginPath(); ctx.arc(sx-TILE*0.27*scale, sy-TILE*0.02*scale, TILE*0.06*scale,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(sx+TILE*0.29*scale, sy+TILE*0.03*scale, TILE*0.055*scale,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawWeb(wx,wy,scale){
+  const sx = wx*TILE-camX, sy = wy*TILE-camY;
+  const r = TILE*0.55*scale;
+  ctx.save();
+  ctx.strokeStyle="rgba(255,255,255,0.5)"; ctx.lineWidth=1;
+  const spokes=6;
+  for(let i=0;i<spokes;i++){
+    const ang=(i/spokes)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+Math.cos(ang)*r, sy+Math.sin(ang)*r); ctx.stroke();
+  }
+  for(let ring=1;ring<=3;ring++){
+    const rr = r*(ring/3);
+    ctx.beginPath();
+    for(let i=0;i<=spokes;i++){
+      const ang=(i/spokes)*Math.PI*2;
+      const px=sx+Math.cos(ang)*rr, py=sy+Math.sin(ang)*rr;
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawPlayer(){
   const sx = player.x*TILE-camX, sy = player.y*TILE-camY;
   ctx.save(); ctx.translate(sx,sy); ctx.scale(player.facing,1);
   if(player.swimming){
-    // simple swimmer: head + shoulders above the water line, paddling arms
     ctx.fillStyle="#2f6f8f"; ctx.globalAlpha=0.5;
     ctx.beginPath(); ctx.ellipse(0,4,13,4,0,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
     ctx.fillStyle="#e8b98a"; ctx.beginPath(); ctx.arc(6,-6,5,0,Math.PI*2); ctx.fill();
@@ -643,32 +930,25 @@ function drawPlayer(){
     ctx.beginPath(); ctx.moveTo(-6,-1); ctx.lineTo(-13,-1+flap); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(2,3); ctx.lineTo(9,3-flap); ctx.stroke();
   } else {
-    // bicycle frame
     ctx.strokeStyle="#3e2d22"; ctx.lineWidth=2.5; ctx.lineCap="round";
-    ctx.beginPath(); ctx.arc(-9,13,7,0,Math.PI*2); ctx.stroke();   // rear wheel
-    ctx.beginPath(); ctx.arc(9,13,7,0,Math.PI*2); ctx.stroke();    // front wheel
+    ctx.beginPath(); ctx.arc(-9,13,7,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(9,13,7,0,Math.PI*2); ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(-9,13); ctx.lineTo(-1,1);      // seat post
-    ctx.lineTo(9,13);                          // down to front wheel hub
-    ctx.moveTo(-1,1); ctx.lineTo(4,-3);        // top tube to handlebar post
-    ctx.lineTo(9,13);                          // handlebar post to front hub
+    ctx.moveTo(-9,13); ctx.lineTo(-1,1);
+    ctx.lineTo(9,13);
+    ctx.moveTo(-1,1); ctx.lineTo(4,-3);
+    ctx.lineTo(9,13);
     ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0,13); ctx.lineTo(-9,13); ctx.moveTo(0,13); ctx.lineTo(9,13); ctx.stroke(); // pedal cranks (rough)
-    // seat + handlebar
+    ctx.beginPath(); ctx.moveTo(0,13); ctx.lineTo(-9,13); ctx.moveTo(0,13); ctx.lineTo(9,13); ctx.stroke();
     ctx.fillStyle="#3e2d22"; ctx.fillRect(-4,-1,6,2);
     ctx.beginPath(); ctx.moveTo(4,-3); ctx.lineTo(8,-4); ctx.stroke();
 
-    // rider torso
     ctx.fillStyle="#b6473f"; ctx.beginPath();
     ctx.moveTo(-1,-2); ctx.lineTo(4,-15); ctx.lineTo(9,-15); ctx.lineTo(4,-2); ctx.closePath(); ctx.fill();
-    // arm to handlebar
     ctx.strokeStyle="#e8b98a"; ctx.lineWidth=2.5;
     ctx.beginPath(); ctx.moveTo(6,-13); ctx.lineTo(8,-4); ctx.stroke();
-    // leg to pedal
     ctx.beginPath(); ctx.moveTo(2,-3); ctx.lineTo(0,13); ctx.stroke();
-    // head
     ctx.fillStyle="#e8b98a"; ctx.beginPath(); ctx.arc(7,-19,5,0,Math.PI*2); ctx.fill();
-    // hair
     ctx.fillStyle="#3e2d22"; ctx.beginPath(); ctx.arc(7,-21,5,Math.PI,Math.PI*2); ctx.fill();
   }
   ctx.restore();
@@ -676,34 +956,61 @@ function drawPlayer(){
 
 /* weather */
 let rainOn=false, nextWeatherCheck=4;
+let nextLightningCheck=10, lightningUntil=-1, lightningX=0, lightningTopY=0;
 const globalRain=[]; for(let i=0;i<90;i++) globalRain.push({x:Math.random(),y:Math.random(),s:Math.random()});
-const snowFlakes=[]; for(let i=0;i<70;i++) snowFlakes.push({t:Math.random()*(ZONES.snow.x1-ZONES.snow.x0)+ZONES.snow.x0, u:Math.random()*(ZONES.snow.y1-ZONES.snow.y0)+ZONES.snow.y0, s:Math.random()});
-const stormRain=[]; for(let i=0;i<60;i++) stormRain.push({t:Math.random()*(ZONES.storm.x1-ZONES.storm.x0)+ZONES.storm.x0, u:Math.random()*(ZONES.storm.y1-ZONES.storm.y0)+ZONES.storm.y0, s:Math.random()});
-
-function updateWeather(dt,t){
+function updateWeather(dt){
   nextWeatherCheck -= dt;
   if(nextWeatherCheck<=0){
     nextWeatherCheck = 20+Math.random()*30;
     if(!rainOn && Math.random()<0.3){ rainOn=true; setTimeout(()=>rainOn=false, (8+Math.random()*10)*1000); }
   }
+  nextLightningCheck -= dt;
+  if(nextLightningCheck<=0){
+    nextLightningCheck = 35+Math.random()*40; // rare
+    const c = STORM_BLOBS[0][Math.floor(Math.random()*STORM_BLOBS[0].length)];
+    lightningX = c.cx + (Math.random()-0.5)*c.r*1.6;
+    lightningTopY = c.cy - c.r*1.4;
+    lightningUntil = performance.now() + 260;
+  }
+}
+function drawLightningBolt(t){
+  if(performance.now() > lightningUntil) return;
+  const bottomY = lightningTopY + 26;
+  ctx.save();
+  ctx.strokeStyle="rgba(255,250,220,.9)"; ctx.lineWidth=2.5; ctx.lineCap="round";
+  ctx.beginPath();
+  let px = lightningX*TILE-camX, py = lightningTopY*TILE-camY;
+  ctx.moveTo(px,py);
+  const steps=5;
+  for(let i=1;i<=steps;i++){
+    px += (hash2(i,lightningTopY)-0.5)*22;
+    py = lightningTopY*TILE-camY + ((bottomY-lightningTopY)*TILE)*(i/steps);
+    ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  ctx.fillStyle="rgba(255,255,255,.12)"; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.restore();
 }
 function drawWeather(t){
-  // permanent snow zone
   ctx.fillStyle="rgba(255,255,255,.9)";
-  for(const f of snowFlakes){
-    const wx=f.t, wy=(f.u + t*0.5*f.s) % (ZONES.snow.y1-ZONES.snow.y0) + ZONES.snow.y0;
-    const sx=wx*TILE-camX, sy=wy*TILE-camY;
-    if(sx>-10&&sx<canvas.width+10&&sy>-10&&sy<canvas.height+10) ctx.fillRect(sx,sy,3,3);
-  }
-  // permanent storm zone rain + occasional flicker
+  for(const b of SNOW_BLOBS){ for(const c of b){
+    for(let i=0;i<10;i++){
+      const ang = i*2.4+c.r, rad = ((t*3+i*13)%1)*c.r;
+      const wx = c.cx+Math.cos(ang)*rad, wy = c.cy+Math.sin(ang)*rad + ((t*0.6+i)%3);
+      const sx=wx*TILE-camX, sy=wy*TILE-camY;
+      if(sx>-10&&sx<canvas.width+10&&sy>-10&&sy<canvas.height+10) ctx.fillRect(sx,sy,3,3);
+    }
+  }}
   ctx.strokeStyle="rgba(180,200,255,.55)"; ctx.lineWidth=1.5;
-  for(const f of stormRain){
-    const wx=f.t, wy=(f.u + t*6*f.s) % (ZONES.storm.y1-ZONES.storm.y0) + ZONES.storm.y0;
-    const sx=wx*TILE-camX, sy=wy*TILE-camY;
-    if(sx>-10&&sx<canvas.width+10&&sy>-10&&sy<canvas.height+10){ ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx-3,sy+9); ctx.stroke(); }
-  }
-  if(Math.sin(t*0.6)>0.985){ ctx.fillStyle="rgba(255,255,255,.10)"; ctx.fillRect(0,0,canvas.width,canvas.height); }
-  // global rare rain
+  for(const b of STORM_BLOBS){ for(const c of b){
+    for(let i=0;i<10;i++){
+      const wx = c.cx + (hash2(i,c.r)-0.5)*c.r*2;
+      const wy = c.cy + (((t*7+i*9)%1)*c.r*2 - c.r);
+      const sx=wx*TILE-camX, sy=wy*TILE-camY;
+      if(sx>-10&&sx<canvas.width+10&&sy>-10&&sy<canvas.height+10){ ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx-3,sy+9); ctx.stroke(); }
+    }
+  }}
+  drawLightningBolt(t);
   if(rainOn){
     ctx.strokeStyle="rgba(220,230,255,.35)"; ctx.lineWidth=1;
     for(const f of globalRain){
@@ -714,7 +1021,7 @@ function drawWeather(t){
 }
 
 /* click / interaction */
-let hoverList = []; // filled each frame: clickable entities with screen coords
+let hoverList = [];
 const bugCooldowns = {};
 function findClickTarget(mx,my){
   let best=null, bestD=999999;
@@ -724,7 +1031,6 @@ function findClickTarget(mx,my){
   }
   return best;
 }
-
 canvas.addEventListener("click", (e)=>{
   if(anyModalOpen()) return;
   const rect = canvas.getBoundingClientRect();
@@ -734,14 +1040,15 @@ canvas.addEventListener("click", (e)=>{
 });
 
 function openInfo(sp, hostSp){
-  document.getElementById("infoName").textContent = sp.name || "(fără nume)";
+  document.getElementById("infoName").textContent = sp.name || "(unnamed)";
   document.getElementById("infoLatin").textContent = sp.latin ? sp.latin : "";
   document.getElementById("infoDesc").textContent = sp.desc || "";
   const photoBox = document.getElementById("infoPhoto");
-  photoBox.innerHTML = sp.photo ? `<img src="${sp.photo}">` : `<div style="font-size:40px;">🌱</div>`;
+  photoBox.innerHTML = sp.photo ? `<img src="${sp.photo}">` : `<div style="font-size:40px;">🐾</div>`;
   const pnote = document.getElementById("infoParasite");
-  if(hostSp){ pnote.style.display="block"; pnote.textContent = "Trăiește ca parazit pe: " + hostSp.name; }
-  else if(sp.isParasite){ pnote.style.display="block"; pnote.textContent = "Este parazit."; }
+  if(hostSp){ pnote.style.display="block"; pnote.textContent = "Lives as a parasite on: " + hostSp.name; }
+  else if(sp.isParasite){ pnote.style.display="block"; pnote.textContent = "Is a parasite."; }
+  else if(sp.habitatTags && sp.habitatTags.includes("parasite_plant")){ pnote.style.display="block"; pnote.textContent = "Lives as a parasite on trees / crops."; }
   else pnote.style.display="none";
   showModal("infoModal");
 }
@@ -754,7 +1061,7 @@ function frame(now){
   frame._last = now;
 
   updatePlayer(dt);
-  updateWeather(dt,t);
+  updateWeather(dt);
   updateCamera();
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -767,32 +1074,40 @@ function frame(now){
     const sp = species[id];
     if(sp.isParasite) continue;
     if(!sp.instances) continue;
+    const hasWeb = sp.movementStyles && sp.movementStyles.includes("scuttle");
     for(let i=0;i<sp.instances.length;i++){
-      const pos = computeInstancePos(sp, sp.instances[i], t);
+      const rt = sp._runtime && sp._runtime[i];
+      const pos = computeInstancePos(sp, sp.instances[i], rt, t);
+      const scale = SIZE_SCALE[sp.size]||1;
+      if(hasWeb && rt){
+        renderList.push({worldY:rt.homeY-0.06, draw:()=>drawWeb(rt.homeX, rt.homeY, scale)});
+      }
+      if(pos.showHole){
+        renderList.push({worldY:pos.holeY-0.05, draw:()=>drawHole(pos.holeX, pos.holeY, scale)});
+      }
       if(!pos.visible) continue;
       renderList.push({worldY:pos.y, draw:()=>{
-        const scale = SIZE_SCALE[sp.size]||1;
         drawIcon(sp,pos.x,pos.y,scale,pos.alpha,pos.glow);
         const sxScr = pos.x*TILE-camX, syScr = pos.y*TILE-camY;
         hoverList.push({sx:sxScr, sy:syScr, hitRadius:TILE*0.7*scale, sp});
-        if(sp.habitatTags && sp.habitatTags.includes("agresiv")){
+        if(sp.habitatTags && sp.habitatTags.includes("aggressive")){
           const d = Math.hypot(pos.x-player.x,pos.y-player.y);
           const key = sp.id+"_"+i;
           if(d<1.0 && (!bugCooldowns[key] || t-bugCooldowns[key]>4)){
-            bugCooldowns[key]=t; spawnBugMsg(sp.name);
+            bugCooldowns[key]=t; spawnBugMsg();
           }
         }
       }});
     }
   }
-  // parasites drawn relative to host
   for(const id in species){
     const sp = species[id];
     if(!sp.isParasite || !sp.hostId) continue;
     const host = species[sp.hostId];
     if(!host || !host.instances) continue;
     for(let i=0;i<host.instances.length;i++){
-      const hpos = computeInstancePos(host, host.instances[i], t);
+      const hrt = host._runtime && host._runtime[i];
+      const hpos = computeInstancePos(host, host.instances[i], hrt, t);
       if(!hpos.visible) continue;
       const px = hpos.x+0.32, py = hpos.y+0.32;
       renderList.push({worldY:py, draw:()=>{
@@ -810,7 +1125,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-function spawnBugMsg(name){
+function spawnBugMsg(){
   const el = document.createElement("div");
   el.className="bugmsg";
   el.textContent = BUG_MESSAGES[Math.floor(Math.random()*BUG_MESSAGES.length)];
@@ -852,8 +1167,8 @@ function tryPass(){
   if(v === EDITOR_PASSWORD){
     editorUnlocked = true; hideModal("passModal"); document.getElementById("passInput").value="";
     showModal("editorModal"); refreshSpeciesListUI();
-    showToast("Editor deblocat.");
-  } else { showToast("Parolă greșită."); }
+    showToast("Editor unlocked.");
+  } else { showToast("Wrong password."); }
 }
 
 /* ============================== EDITOR: TAGS ============================== */
@@ -870,12 +1185,7 @@ MOVE_STYLES.forEach(([val,label])=>{
   movebox.appendChild(lab);
 });
 
-document.querySelectorAll('input[name=stype]').forEach(r=>r.addEventListener("change", ()=>{
-  const isPlant = document.querySelector('input[name=stype]:checked').value === "planta";
-  document.getElementById("moveField").style.display = isPlant ? "none" : "block";
-}));
-
-document.getElementById("fParasite").addEventListener("change", (e)=>{
+document.querySelector('input[name=tag][value="parasite_animal"]').addEventListener("change", (e)=>{
   document.getElementById("fHost").style.display = e.target.checked ? "block" : "none";
 });
 function populateHostSelect(){
@@ -937,7 +1247,7 @@ let photoDataUrl = null;
 document.getElementById("fPhoto").addEventListener("change", async (e)=>{
   const file = e.target.files[0]; if(!file) return;
   photoDataUrl = await resizeImageFile(file, 360);
-  showToast("Fotografie încărcată.");
+  showToast("Photo uploaded.");
 });
 function resizeImageFile(file, maxDim){
   return new Promise((resolve,reject)=>{
@@ -961,20 +1271,19 @@ function resizeImageFile(file, maxDim){
 /* ============================== EDITOR: SUBMIT ============================== */
 document.getElementById("speciesForm").addEventListener("submit", async (e)=>{
   e.preventDefault();
-  const type = document.querySelector('input[name=stype]:checked').value;
   const name = document.getElementById("fName").value.trim();
-  if(!name){ showToast("Numele e obligatoriu."); return; }
+  if(!name){ showToast("Name is required."); return; }
   const habitatTags = Array.from(document.querySelectorAll('input[name=tag]:checked')).map(c=>c.value);
   const movementStyles = Array.from(document.querySelectorAll('input[name=move]:checked')).map(c=>c.value);
-  const isParasite = document.getElementById("fParasite").checked;
+  const isParasite = habitatTags.includes("parasite_animal");
   const hostId = isParasite ? document.getElementById("fHost").value : null;
 
-  if(!habitatTags.length){ showToast("Bifează cel puțin un habitat."); return; }
-  if(type==="animal" && !movementStyles.length && !isParasite){ showToast("Alege cel puțin un stil de mișcare."); return; }
-  if(isParasite && !hostId){ showToast("Alege o gazdă pentru parazit."); return; }
+  if(!habitatTags.length){ showToast("Check at least one habitat."); return; }
+  if(!movementStyles.length && !isParasite){ showToast("Choose at least one movement style."); return; }
+  if(isParasite && !hostId){ showToast("Choose a host for the parasite."); return; }
 
   const sp = {
-    id: uid(), type, name,
+    id: uid(), name,
     latin: document.getElementById("fLatin").value.trim(),
     desc: document.getElementById("fDesc").value.trim(),
     photo: photoDataUrl,
@@ -987,11 +1296,12 @@ document.getElementById("speciesForm").addEventListener("submit", async (e)=>{
   };
   sp._iconCanvas = buildIconCanvas(sp.icon);
   placeSpecies(sp);
+  initRuntime(sp);
   species[sp.id] = sp;
 
-  try{ await saveSpeciesToStorage(sp); }catch(err){ showToast("Eroare la salvare: "+err.message); }
+  try{ await saveSpeciesToStorage(sp); }catch(err){ showToast("Save error: "+err.message); }
 
-  showToast("„"+name+"” a fost adăugată în lume!");
+  showToast("\""+name+"\" was added to the world!");
   resetEditorForm();
   hideModal("editorModal");
   refreshSpeciesListUI();
@@ -1003,7 +1313,6 @@ function resetEditorForm(){
   iconData.fill(null); redrawIconCanvas();
   photoDataUrl = null;
   document.getElementById("fHost").style.display="none";
-  document.getElementById("moveField").style.display="block";
 }
 
 /* ============================== SPECIES LIST (JOURNAL) ============================== */
@@ -1011,20 +1320,20 @@ document.getElementById("btnList").addEventListener("click", ()=>{ refreshSpecie
 function refreshSpeciesListUI(){
   const body = document.getElementById("speciesListBody");
   const list = Object.values(species).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-  if(!list.length){ body.innerHTML = `<div id="emptyHint">Nicio specie adăugată încă. Apasă „+ Adaugă specie”.</div>`; return; }
+  if(!list.length){ body.innerHTML = `<div id="emptyHint">No species added yet. Tap “+ Add species”.</div>`; return; }
   body.innerHTML = "";
   list.forEach(sp=>{
     const row = document.createElement("div"); row.className="srow";
     const cv = document.createElement("canvas"); cv.width=16; cv.height=16;
     cv.getContext("2d").drawImage(sp._iconCanvas || buildIconCanvas(sp.icon),0,0);
     const info = document.createElement("div");
-    info.innerHTML = `<div class="sname">${sp.type==="planta"?"🌱":"🐾"} ${sp.name}</div><div class="smeta">${sp.latin||""} · ${sp.rarity.replace("_"," ")}${sp.isParasite?" · parazit":""}</div>`;
+    info.innerHTML = `<div class="sname">🐾 ${sp.name}</div><div class="smeta">${sp.latin||""} · ${(sp.rarity||"").replace("_"," ")}${sp.isParasite?" · parasite":""}</div>`;
     row.appendChild(cv); row.appendChild(info);
     if(editorUnlocked){
-      const del = document.createElement("button"); del.className="small danger srowr"; del.textContent="Șterge";
+      const del = document.createElement("button"); del.className="small danger srowr"; del.textContent="Delete";
       del.addEventListener("click", async ()=>{
         await deleteSpeciesFromStorage(sp.id);
-        showToast("„"+sp.name+"” a fost ștearsă.");
+        showToast("\""+sp.name+"\" was deleted.");
         refreshSpeciesListUI(); populateHostSelect();
       });
       row.appendChild(del);
@@ -1035,12 +1344,12 @@ function refreshSpeciesListUI(){
 
 /* ============================== EXPORT / IMPORT ============================== */
 document.getElementById("btnExport").addEventListener("click", ()=>{
-  const arr = Object.values(species).map(sp=>{ const c=Object.assign({},sp); delete c._iconCanvas; return c; });
+  const arr = Object.values(species).map(sp=>{ const c=Object.assign({},sp); delete c._iconCanvas; delete c._runtime; return c; });
   const blob = new Blob([JSON.stringify(arr,null,2)], {type:"application/json"});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href=url; a.download="pixel-natura-specii.json"; a.click();
+  const a = document.createElement("a"); a.href=url; a.download="pixel-natura-species.json"; a.click();
   URL.revokeObjectURL(url);
-  showToast("Fișier exportat: pixel-natura-specii.json");
+  showToast("File exported: pixel-natura-species.json");
 });
 document.getElementById("btnImportTrigger").addEventListener("click", ()=>document.getElementById("importFile").click());
 document.getElementById("importFile").addEventListener("change", async (e)=>{
@@ -1053,13 +1362,14 @@ document.getElementById("importFile").addEventListener("change", async (e)=>{
       if(!sp.id || !sp.name) continue;
       sp._iconCanvas = buildIconCanvas(sp.icon);
       if(!sp.instances) placeSpecies(sp);
+      initRuntime(sp);
       species[sp.id] = sp;
       await saveSpeciesToStorage(sp);
       count++;
     }
-    showToast(count+" specii importate.");
+    showToast(count+" species imported.");
     refreshSpeciesListUI(); populateHostSelect();
-  }catch(err){ showToast("Fișier invalid: "+err.message); }
+  }catch(err){ showToast("Invalid file: "+err.message); }
   e.target.value="";
 });
 
