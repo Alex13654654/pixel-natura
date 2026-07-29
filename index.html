@@ -302,28 +302,28 @@ const MOVE_STYLES = [
 
 // speed = tiles/second while travelling. mode drives the behaviour engine below.
 const STYLE_PARAMS = {
-  chaotic_flight:{mode:"glide",speed:2.3,jitterAmp:.35,jitterFreq:6,hop:false,pause:.3},
-  buzzing_flight:{mode:"glide",speed:3.0,jitterAmp:.25,jitterFreq:10,hop:false,pause:.2},
-  gliding_flight:{mode:"glide",speed:2.6,jitterAmp:.05,jitterFreq:1,hop:false,pause:1.5},
-  jerky_flight:{mode:"glide",speed:2.4,jitterAmp:.1,jitterFreq:2,hop:true,pause:.6},
-  high_circling_flight:{mode:"circle",speed:1.0,radius:10,driftEvery:22},
-  erratic_bat_flight:{mode:"glide",speed:2.8,jitterAmp:.4,jitterFreq:8,hop:false,pause:.2},
-  underwater_swim:{mode:"glide",speed:1.8,jitterAmp:.05,jitterFreq:1,hop:false,pause:.8},
-  surface_swim:{mode:"glide",speed:1.3,jitterAmp:.05,jitterFreq:1,hop:false,pause:1.0},
-  bottom_walk:{mode:"glide",speed:.7,jitterAmp:0,jitterFreq:0,hop:true,pause:1.2},
-  smooth_walk:{mode:"glide",speed:1.4,jitterAmp:0,jitterFreq:0,hop:false,pause:1.0},
-  running:{mode:"glide",speed:3.2,jitterAmp:0,jitterFreq:0,hop:false,pause:.6},
-  heavy_gait:{mode:"glide",speed:1.0,jitterAmp:0,jitterFreq:0,hop:false,pause:1.5},
-  hop:{mode:"glide",speed:1.6,jitterAmp:0,jitterFreq:0,hop:true,pause:.9},
-  explosive_jump:{mode:"glide",speed:2.4,jitterAmp:0,jitterFreq:0,hop:true,pause:.7},
-  slither:{mode:"glide",speed:1.1,jitterAmp:.05,jitterFreq:2,hop:false,pause:1.0},
-  slow_crawl:{mode:"glide",speed:.3,jitterAmp:0,jitterFreq:0,hop:false,pause:2.0},
-  scuttle:{mode:"glide",speed:1.8,jitterAmp:0,jitterFreq:0,hop:true,pause:.3},
-  burrow_peek:{mode:"peek",interval:7,showFrac:.16},
-  den_dweller:{mode:"peek",interval:26,showFrac:.85},
-  clinging:{mode:"static"},
-  glow_pulse:{mode:"pulse"},
-  drift_on_waves:{mode:"glide",speed:.4,jitterAmp:.15,jitterFreq:.5,hop:false,pause:2.5}
+  chaotic_flight:      {mode:"glide", speed:1.6, step:[1,3],   jitterAmp:.4, jitterFreq:7,  hop:false, pause:[.2,.6]},
+  buzzing_flight:      {mode:"glide", speed:3.6, step:[1,2.5], jitterAmp:.3, jitterFreq:12, hop:false, pause:[.1,.3]},
+  gliding_flight:      {mode:"glide", speed:3.4, step:[10,22], jitterAmp:.03,jitterFreq:1,  hop:false, pause:[2,5]},
+  jerky_flight:        {mode:"glide", speed:2.2, step:[2,5],   jitterAmp:.05,jitterFreq:2,  hop:true,  pause:[.8,1.8]},
+  high_circling_flight:{mode:"circle",speed:0.9, radius:12, driftEvery:26},
+  erratic_bat_flight:  {mode:"glide", speed:3.2, step:[2,5],   jitterAmp:.5, jitterFreq:9,  hop:false, pause:[.15,.4]},
+  underwater_swim:     {mode:"glide", speed:2.1, step:[4,10],  jitterAmp:.06,jitterFreq:2,  hop:false, pause:[.3,.9]},
+  surface_swim:        {mode:"glide", speed:0.9, step:[2,5],   jitterAmp:.02,jitterFreq:1,  hop:false, pause:[2,4.5]},
+  bottom_walk:         {mode:"glide", speed:0.5, step:[1,2.5], jitterAmp:0,  jitterFreq:0,  hop:true,  pause:[1.5,3]},
+  smooth_walk:         {mode:"glide", speed:1.3, step:[3,7],   jitterAmp:0,  jitterFreq:0,  hop:false, pause:[1,2.5]},
+  running:             {mode:"glide", speed:4.6, step:[6,14],  jitterAmp:0,  jitterFreq:0,  hop:false, pause:[.4,1]},
+  heavy_gait:          {mode:"glide", speed:0.7, step:[2,5],   jitterAmp:0,  jitterFreq:0,  hop:false, pause:[2.5,5]},
+  hop:                 {mode:"glide", speed:2.2, step:[1.2,2.5],jitterAmp:0, jitterFreq:0,  hop:true,  pause:[.6,1.4]},
+  explosive_jump:      {mode:"glide", speed:7.0, step:[2.5,5], jitterAmp:0,  jitterFreq:0,  hop:true,  pause:[1.5,3.5]},
+  slither:             {mode:"glide", speed:1.0, step:[3,6],   jitterAmp:.12,jitterFreq:3,  hop:false, pause:[.8,1.8]},
+  slow_crawl:          {mode:"glide", speed:.22, step:[.6,1.4],jitterAmp:0,  jitterFreq:0,  hop:false, pause:[0,.3]},
+  scuttle:             {mode:"glide", speed:2.4, step:[1,2.5], jitterAmp:0,  jitterFreq:0,  hop:true,  pause:[.2,.5]},
+  burrow_peek:         {mode:"peek", interval:7,  showFrac:.16, step:[3,8]},
+  den_dweller:         {mode:"peek", interval:26, showFrac:.85, step:[1,4]},
+  clinging:            {mode:"static"},
+  glow_pulse:          {mode:"pulse"},
+  drift_on_waves:      {mode:"glide", speed:.35, step:[.8,2],  jitterAmp:.2, jitterFreq:.4, hop:false, pause:[1.5,3]}
 };
 
 // Smaller populations per rarity tier — the map is bigger than before but not enormous.
@@ -367,10 +367,19 @@ function isRiver(x,y){
   const cx = riverCenterX(y);
   return Math.abs(x-cx) < riverWidth(y)/2;
 }
+// a single wooden bridge crossing the river, so land creatures (and the player) can
+// cross to the other side if a wander/leg happens to take them there
+const BRIDGE_Y = Math.round(WORLD_H*0.47);
+function isBridge(x,y){
+  if(y<BRIDGE_Y-1||y>BRIDGE_Y+1) return false;
+  const cx = riverCenterX(BRIDGE_Y), w = riverWidth(BRIDGE_Y);
+  return Math.abs(x-cx) < w/2+2;
+}
 
 (function generateWorld(){
   for(let y=0;y<WORLD_H;y++){
     for(let x=0;x<WORLD_W;x++){
+      if(isBridge(x,y)){ terrain[y][x]="bridge"; continue; }
       if(isRiver(x,y) || inAnyBlob(x,y,LAKES)){ terrain[y][x]="water"; continue; }
       if(inAnyBlob(x,y,FOREST_BLOBS)){ terrain[y][x] = hash2(x,y)<0.55 ? "forest" : "grass"; continue; }
       if(inAnyBlob(x,y,GARDEN_BLOBS)){ terrain[y][x]="garden"; continue; }
@@ -458,29 +467,45 @@ function pickHabitatPool(tags){
   return pools.land;
 }
 
-// LOCAL region used for ongoing roaming (so an animal stays on its own landmass/pond)
+// Movement no longer picks a target from a giant list of every valid tile (that produced
+// huge, disappearing-feeling treks). Instead each instance knows its "domain" (land mass,
+// pond, sky...) and validity is a fast O(1) check, so it takes many *short* nearby steps
+// and gradually explores its whole territory (crossing the bridge if it wanders that way).
 function pickRandomTile(list){ return list[Math.floor(Math.random()*list.length)]; }
-function regionForInstance(tags, homeX, homeY){
-  if(tags.includes("dark_zone") && pools.dark.length) return pools.dark;
-  if(tags.includes("snow_zone") && pools.snow.length) return pools.snow;
+
+function domainFor(tags, hx, hy){
+  if(tags.includes("dark_zone")) return {type:"dark"};
+  if(tags.includes("snow_zone")) return {type:"snow"};
+  if(tags.includes("parasite_plant")) return {type:"vegetation"};
   const hasWater = tags.some(t=>t.startsWith("water_"));
   const hasLand = tags.includes("land")||tags.includes("burrow")||tags.includes("clingy");
   const hasAir = tags.includes("air");
-  if(hasWater && hasLand){
-    const onWater = terrain[homeY][homeX]==="water";
-    let waterTiles=[], landTiles=[];
-    if(onWater){ waterTiles = waterComponentAt(homeX,homeY)||pools.water;
-      const adj = findAdjacentMatching(homeX,homeY,(nx,ny)=>terrain[ny][nx]!=="water");
-      landTiles = adj ? (landComponentAt(adj.x,adj.y)||[]) : [];
-    } else { landTiles = landComponentAt(homeX,homeY)||pools.land;
-      const adj = findAdjacentMatching(homeX,homeY,(nx,ny)=>terrain[ny][nx]==="water");
-      waterTiles = adj ? (waterComponentAt(adj.x,adj.y)||[]) : [];
-    }
-    return landTiles.concat(waterTiles);
+  if(hasWater && hasLand) return {type:"amphibious"};
+  if(hasWater) return {type:"water", compId: waterFF.compId[hy*WORLD_W+hx]};
+  if(hasAir && !hasLand) return {type:"air"};
+  return {type:"land", compId: landFF.compId[hy*WORLD_W+hx]};
+}
+function inDomain(domain, x, y){
+  const xi=Math.floor(x), yi=Math.floor(y);
+  if(xi<0||yi<0||xi>=WORLD_W||yi>=WORLD_H) return false;
+  switch(domain.type){
+    case "dark": return isDark(xi,yi);
+    case "snow": return isSnow(xi,yi);
+    case "vegetation": return terrain[yi][xi]==="forest"||terrain[yi][xi]==="garden";
+    case "water": return terrain[yi][xi]==="water" && waterFF.compId[yi*WORLD_W+xi]===domain.compId;
+    case "amphibious": return true;
+    case "air": return true;
+    default: return terrain[yi][xi]!=="water" && landFF.compId[yi*WORLD_W+xi]===domain.compId;
   }
-  if(hasWater) return waterComponentAt(homeX,homeY) || pools.water;
-  if(hasAir && !hasLand) return null; // null => roam the whole world freely (pure fliers)
-  return landComponentAt(homeX,homeY) || pools.land;
+}
+// try a handful of nearby random offsets and keep the first one that's still in-domain
+function pickNearbyValidSpot(domain, fromX, fromY, minD, maxD){
+  for(let i=0;i<10;i++){
+    const ang = Math.random()*Math.PI*2, d = minD+Math.random()*(maxD-minD);
+    const cx = fromX+Math.cos(ang)*d, cy = fromY+Math.sin(ang)*d;
+    if(inDomain(domain, cx, cy)) return {x:cx, y:cy};
+  }
+  return null;
 }
 
 /* ============================== STORAGE / SPECIES ============================== */
@@ -576,9 +601,9 @@ function initRuntime(sp){
   if(sp.isParasite || !sp.instances) return;
   for(const inst of sp.instances){
     const hx = Math.floor(inst.x), hy = Math.floor(inst.y);
-    const region = regionForInstance(sp.habitatTags||[], clamp(hx,0,WORLD_W-1), clamp(hy,0,WORLD_H-1));
+    const domain = domainFor(sp.habitatTags||[], clamp(hx,0,WORLD_W-1), clamp(hy,0,WORLD_H-1));
     sp._runtime.push({
-      x:inst.x, y:inst.y, homeX:inst.x, homeY:inst.y, seed:inst.seed, region,
+      x:inst.x, y:inst.y, homeX:inst.x, homeY:inst.y, seed:inst.seed, domain,
       state:"paused", pauseUntil:0, legStartX:inst.x, legStartY:inst.y, legTargetX:inst.x, legTargetY:inst.y,
       legStart:0, legDuration:1, cycleStart:0, spotX:inst.x, spotY:inst.y,
       centerX:inst.x, centerY:inst.y, lastDrift:0, angleSeed:Math.random()*Math.PI*2,
@@ -616,16 +641,15 @@ function updatePlayer(dt){
 }
 
 /* ============================== ANIMAL MOVEMENT ENGINE ============================== */
-// Animals roam freely across their whole valid territory (their landmass, their pond,
-// the sky, etc.) using multi-leg wandering instead of small fixed-radius circling.
-function pickNewLeg(rt, t){
-  let target;
-  if(rt.region===null){ // pure flier: anywhere in the world
-    target = { x: 1+Math.random()*(WORLD_W-2), y: 1+Math.random()*(WORLD_H-2) };
-  } else if(rt.region.length){
-    const tile = pickRandomTile(rt.region);
-    target = { x: tile.x+0.5+(Math.random()-0.5)*0.7, y: tile.y+0.5+(Math.random()-0.5)*0.7 };
-  } else { target = {x:rt.x, y:rt.y}; }
+// Animals never vanish once placed. They take many short, local steps (a few tiles at a
+// time) rather than picking one far-off point across the whole map — that's what made
+// them feel like they wandered off and disappeared forever. Over time this still lets
+// them gradually explore their whole territory (and cross the bridge if a step happens
+// to land on it), it's just paced like a real animal instead of a long-haul teleport.
+function pickNewLeg(sp, rt, t, params){
+  const [minS,maxS] = params.step || [3,7];
+  const spot = pickNearbyValidSpot(rt.domain, rt.x, rt.y, minS, maxS);
+  const target = spot || {x:rt.x, y:rt.y};
   rt.legStartX = rt.x; rt.legStartY = rt.y;
   rt.legTargetX = target.x; rt.legTargetY = target.y;
   rt.legStart = t;
@@ -669,9 +693,9 @@ function updateInstance(sp, rt, t){
   }
   else if(params.mode==="peek"){
     if(t - rt.cycleStart > params.interval){
-      const region = rt.region;
-      const tile = region===null ? {x:rt.homeX,y:rt.homeY} : (region && region.length ? pickRandomTile(region) : {x:rt.homeX,y:rt.homeY});
-      rt.spotX = tile.x+0.5+(Math.random()-0.5)*0.5; rt.spotY = tile.y+0.5+(Math.random()-0.5)*0.5;
+      const [minS,maxS] = params.step || [3,8];
+      const spot = pickNearbyValidSpot(rt.domain, rt.spotX, rt.spotY, minS, maxS);
+      if(spot){ rt.spotX = spot.x; rt.spotY = spot.y; }
       rt.cycleStart = t;
     }
     const frac = (t-rt.cycleStart)/params.interval;
@@ -680,20 +704,19 @@ function updateInstance(sp, rt, t){
   }
   else if(params.mode==="circle"){
     if(t - rt.lastDrift > params.driftEvery){
-      const region = rt.region;
-      if(region===null){ rt.centerX = 1+Math.random()*(WORLD_W-2); rt.centerY = 1+Math.random()*(WORLD_H-2); }
-      else if(region.length){ const tile = pickRandomTile(region); rt.centerX = tile.x+0.5; rt.centerY = tile.y+0.5; }
+      const spot = pickNearbyValidSpot(rt.domain, rt.centerX, rt.centerY, params.radius*0.6, params.radius*1.4);
+      if(spot){ rt.centerX = spot.x; rt.centerY = spot.y; }
       rt.lastDrift = t;
     }
     const angSpeed = params.speed/Math.max(1,params.radius);
     px = rt.centerX + Math.cos(t*angSpeed+rt.angleSeed)*params.radius;
     py = rt.centerY + Math.sin(t*angSpeed+rt.angleSeed)*params.radius*0.55;
   }
-  else { // "glide" - the main roaming engine
+  else { // "glide" - the main roaming engine: short local steps, paced per style
     if(rt.state==="paused"){
-      if(t >= rt.pauseUntil){ pickNewLeg(rt,t);
+      if(t >= rt.pauseUntil){ pickNewLeg(sp,rt,t,params);
         const d = dist(rt.legStartX,rt.legStartY,rt.legTargetX,rt.legTargetY);
-        rt.legDuration = Math.max(0.5, d/params.speed);
+        rt.legDuration = Math.max(0.35, d/params.speed);
         rt.state="moving";
       }
     }
@@ -706,7 +729,9 @@ function updateInstance(sp, rt, t){
       if(params.hop) py -= Math.sin(progress*Math.PI)*0.22;
       if(progress>=1){
         rt.x = rt.legTargetX; rt.y = rt.legTargetY;
-        rt.state="paused"; rt.pauseUntil = t + params.pause*(0.5+Math.random()*0.9);
+        rt.state="paused";
+        const [pMin,pMax] = params.pause || [.5,1.5];
+        rt.pauseUntil = t + pMin + Math.random()*(pMax-pMin);
       }
     } else { px = rt.x; py = rt.y; }
     if(params.jitterAmp){
@@ -736,6 +761,7 @@ function tileBaseColor(x,y){
   if(t==="water") c = "#2f6f8f";
   else if(t==="forest") c = "#3f6e3d";
   else if(t==="garden") c = "#5f9a58";
+  else if(t==="bridge") c = "#8a6b45";
   else c = "#4c7f4a";
   if(isDark(x,y)) c = shadeColor(c,-0.42);
   if(isSnow(x,y)) c = shadeColor(c, t==="water"? -0.1 : 0.55);
@@ -850,6 +876,12 @@ function drawTerrain(){
         drawForestDecor(x,y,sx,sy);
       } else if(t==="garden"){
         drawGardenDecor(x,y,sx,sy);
+      } else if(t==="bridge"){
+        ctx.strokeStyle="rgba(60,40,20,0.5)"; ctx.lineWidth=2;
+        for(let i=1;i<4;i++){ const px=sx+TILE*(i/4); ctx.beginPath(); ctx.moveTo(px,sy); ctx.lineTo(px,sy+TILE); ctx.stroke(); }
+        ctx.strokeStyle="rgba(90,65,35,0.7)"; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.moveTo(sx,sy+TILE*0.15); ctx.lineTo(sx+TILE,sy+TILE*0.15); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(sx,sy+TILE*0.85); ctx.lineTo(sx+TILE,sy+TILE*0.85); ctx.stroke();
       } else if(t==="grass" && hash2(x*4.1,y*4.3)<0.05){
         drawBush(sx+TILE*0.5, sy+TILE*0.62, TILE*0.16, shadeColor("#4c7f4a",-0.15));
       } else if(reeds[y][x]){
